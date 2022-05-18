@@ -1,5 +1,8 @@
 use crate::PreStartupSystemLabels;
 use bevy::prelude::*;
+use rand::{prelude::SliceRandom, thread_rng};
+
+use super::tile::TileHeight;
 
 #[derive(Default)]
 pub(crate) struct MapSprites {
@@ -7,6 +10,19 @@ pub(crate) struct MapSprites {
     pub half_tile: Handle<Image>,
     pub tile_hover_overlay: Handle<Image>,
     pub tile_valid_move_overlay: Handle<Image>,
+}
+
+impl MapSprites {
+    pub(crate) fn get_tile(&self, tile_height: TileHeight) -> Handle<Image> {
+        match tile_height {
+            TileHeight::Full => self
+                .full_tile
+                .choose(&mut thread_rng())
+                .expect("no tile sprites")
+                .clone(),
+            TileHeight::Half => self.half_tile.clone(),
+        }
+    }
 }
 
 pub(crate) struct MapGraphicsPlugin;

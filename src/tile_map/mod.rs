@@ -1,4 +1,4 @@
-use crate::PreStartupSystemLabels;
+use crate::{PreStartupSystemLabels, TILE_SIZE};
 
 use bevy::prelude::*;
 
@@ -28,7 +28,7 @@ impl Plugin for TileMapPlugin {
 
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
-        let mut map = Map::new(commands.spawn().id());
+        let mut map = Map::new(commands.spawn().id(), TILE_SIZE);
         let mut layer = Layer::new(0, &mut commands);
 
         for x in 0..10 {
@@ -37,12 +37,13 @@ impl TileMapPlugin {
                 let tile = Tile {
                     pos,
                     height: TileHeight::Full,
+                    size: map.tile_size,
                 };
 
                 layer.insert_tile(&mut commands, tile, &graphics);
             }
         }
-        map.insert_layer(&mut commands, layer);
+        // map.insert_layer(&mut commands, layer);
 
         let mut layer2 = Layer::new(1, &mut commands);
 
@@ -53,13 +54,14 @@ impl TileMapPlugin {
                     let tile = Tile {
                         pos,
                         height: TileHeight::Half,
+                        size: map.tile_size,
                     };
 
                     layer2.insert_tile(&mut commands, tile, &graphics);
                 }
             }
         }
-        map.insert_layer(&mut commands, layer2);
+        map.insert_layers(&mut commands, &[layer, layer2]);
 
         map.spawn(&mut commands);
     }

@@ -25,6 +25,7 @@ impl Layer {
             tiles: HashMap::new(),
         };
 
+        // WARNING: this .clone() means updating the returned value won't change anything in the game world
         commands.entity(entity).insert(layer.clone());
 
         layer
