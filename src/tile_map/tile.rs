@@ -33,7 +33,9 @@ impl Tile {
                     custom_size: Some(Vec2::splat(self.size)),
                     ..default()
                 },
-                transform: Transform::from_translation(self.isometric(layer_index, self.height)),
+                transform: Transform::from_translation(
+                    self.to_screen_space(layer_index, self.height),
+                ),
                 ..default()
             })
             .insert(*self)
@@ -41,29 +43,50 @@ impl Tile {
     }
 
     /// get world coords for isometric grid
-    pub(crate) fn isometric(self, layer_index: usize, tile_height: TileHeight) -> Vec3 {
-        let a = 0.5 * self.size;
-        let b = -(0.5 * self.size);
-        let c = 0.25 * self.size;
-        let d = 0.25 * self.size;
-        let x_transform = Vec2::new(a, c);
-        let y_transform = Vec2::new(b, d);
+    pub(crate) fn to_screen_space(self, layer_index: usize, tile_height: TileHeight) -> Vec3 {
+        let x_transform = Vec2::new(0.5 * self.size, 0.25 * self.size);
+        let y_transform = Vec2::new(-(0.5 * self.size), 0.25 * self.size);
 
         let Pos(x, y) = self.pos;
 
-        // transform x + z into 2d isometric coord
+        // transform x + z into 2d screen space coord
         let mut coords = (x as f32 * x_transform) + (y as f32 * y_transform);
 
         // bevy y axis is in the opposite direction
         coords.y = -coords.y;
-        let y_offset = match tile_height {
+
+        // TODO: I'm pretty sure this is wrong for layer indexes greater than 1
+        // — maybe it's layer_index - 0.5 in those cases?
+
+        let height_offset = match tile_height {
             TileHeight::Full => layer_index as f32,
             TileHeight::Half => layer_index as f32 * 0.5,
         };
-        coords.y += y_offset as f32 * self.size / 2.0;
+        coords.y += height_offset * self.size / 2.0;
 
         let z = (x as f32 * 0.0001) + (y as f32 * 0.001) + (layer_index as f32 * 0.01);
 
         Vec3::new(coords.x, coords.y, z)
+    }
+
+    /// returns y coord offset to from sprite origin to centre of top face
+    pub(crate) fn get_y_offset(&self) -> f32 {
+        self.size / 4.0
+    }
+}
+
+trait ToWorld {
+    fn to_world(&self) -> Pos;
+}
+
+impl ToWorld for Vec2 {
+    fn to_world(&self, size: f32) -> Pos {
+        let a = 0.5 * size;
+        let b = -(0.5 * size);
+        let c = 0.25 * size;
+        let d = 0.25 * size;
+        
+        let x_transform = Vec2::new(0.5 * self.size, 0.25 * self.size);
+        let y_transform = Vec2::new(-(0.5 * self.size), 0.25 * self.size);
     }
 }

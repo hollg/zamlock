@@ -31,17 +31,17 @@ impl TilePickingPlugin {
         tile_query: Query<(&Tile, &GlobalTransform)>,
         mut active_tile: ResMut<ActiveTile>,
     ) {
+        let mut new_active_tile: ActiveTile = ActiveTile(None);
+
         if let Some(world_pos) = mouse_pos_to_world_pos(wnds, q_camera) {
             let mut layers: Vec<(&Layer, &Children)> = layer_query.iter().collect();
 
             if let Some(tile_entity) = get_tile_at_pos(world_pos, &mut layers, &tile_query) {
-                *active_tile = ActiveTile(Some(tile_entity));
-            } else {
-                *active_tile = ActiveTile(None);
+                new_active_tile = ActiveTile(Some(tile_entity));
             }
-        } else {
-            *active_tile = ActiveTile(None);
         }
+
+        *active_tile = new_active_tile;
     }
 
     fn hover_tile(
@@ -87,6 +87,7 @@ impl TilePickingPlugin {
         mut commands: Commands,
         mouse_input: Res<Input<MouseButton>>,
         active_tile: Res<ActiveTile>,
+        tile_query: Query<&Tile>,
     ) {
         if active_tile.0 == None {
             return;
@@ -97,10 +98,13 @@ impl TilePickingPlugin {
         }
 
         let tile_entity = active_tile.0.expect("No active tile entity");
+        let tile = tile_query
+            .get(tile_entity)
+            .expect("No tile for active tile entity");
 
         let thing = commands
             .spawn_bundle(SpriteBundle {
-                transform: Transform::from_translation(Vec3::new(0.0, 8.0, 20.0)),
+                transform: Transform::from_translation(Vec3::new(0.0, tile.get_y_offset(), 20.0)),
                 sprite: Sprite {
                     custom_size: Some(Vec2::splat(2.0)),
                     color: Color::rgb(0., 0., 0.),
@@ -137,10 +141,13 @@ pub fn get_tile_at_pos(
 
             let tile_pos = global_transform.translation.truncate();
             // match against center of top face
-            let offset_pos = tile_pos + tile.size / 4.0;
+            let offset_pos = tile_pos + tile.get_y_offset();
 
-            if (offset_pos.x - world_pos.x).abs() <= 8.0
-                && (offset_pos.y - world_pos.y).abs() <= 8.0
+            // TODO: I think this is broken because the tile top face
+            // is an irregular shape; this code would probably work if it were circular
+
+            if (offset_pos.x - world_pos.x).abs() <= tile.size / 4.0
+                && (offset_pos.y - world_pos.y).abs() <= tile.size / 4.0
             {
                 // matches.push((tile_entity, tile, global_transform));
                 tile_at_pos = Some(*tile_entity);
