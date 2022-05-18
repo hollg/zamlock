@@ -2,10 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::{
-    graphics::MapSprites,
-    tile::{Pos, Tile},
-};
+use super::{pos::Pos, graphics::MapSprites, tile::Tile};
 
 #[derive(Component, Clone)]
 pub struct Layer {

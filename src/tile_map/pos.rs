@@ -1,4 +1,3 @@
-use super::tile::Pos;
 use super::tile::TILE_SIZE;
 use bevy::prelude::{Vec2, Vec3};
 
@@ -7,12 +6,11 @@ const B: f32 = -(0.5 * TILE_SIZE);
 const C: f32 = 0.25 * TILE_SIZE;
 const D: f32 = 0.25 * TILE_SIZE;
 
-pub trait Coordinates {
-    fn to_isometric(&self) -> Vec3;
-}
+#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+pub struct Pos(pub(crate) u32, pub(crate) u32);
 
-impl Coordinates for Pos {
-    fn to_isometric(&self) -> Vec3 {
+impl Pos {
+    pub(crate) fn to_isometric(self) -> Vec3 {
         let x_transform = Vec2::new(A, C);
         let y_transform = Vec2::new(B, D);
 

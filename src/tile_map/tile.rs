@@ -1,17 +1,14 @@
-use super::{coordinates::Coordinates, graphics::MapSprites};
+use super::{graphics::MapSprites, pos::Pos};
 use bevy::prelude::*;
 use rand::{seq::SliceRandom, thread_rng};
 
 pub(crate) const TILE_SIZE: f32 = 32.0;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum TileHeight {
     Full,
     Half,
 }
-
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
-pub struct Pos(pub(crate) u32, pub(crate) u32);
 
 #[derive(Component, Copy, Clone)]
 pub struct Tile {

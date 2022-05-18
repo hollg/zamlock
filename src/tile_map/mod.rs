@@ -2,13 +2,14 @@ use crate::PreStartupSystemLabels;
 
 use bevy::prelude::*;
 
+use pos::Pos;
 use layer::Layer;
 use map::Map;
-use tile::{Pos, Tile, TileHeight};
+use tile::{Tile, TileHeight};
 
 use self::graphics::MapSprites;
 
-mod coordinates;
+mod pos;
 mod graphics;
 mod layer;
 mod map;
