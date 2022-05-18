@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{graphics::MapSprites, layer::Layer};
+use super::layer::Layer;
 
 #[derive(Component)]
 pub struct Map {

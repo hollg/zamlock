@@ -2,17 +2,17 @@ use crate::PreStartupSystemLabels;
 
 use bevy::prelude::*;
 
-use pos::Pos;
 use layer::Layer;
 use map::Map;
+use pos::Pos;
 use tile::{Tile, TileHeight};
 
 use self::graphics::MapSprites;
 
-mod pos;
 mod graphics;
 mod layer;
 mod map;
+mod pos;
 mod tile;
 
 struct TileMapPlugin;
@@ -29,7 +29,7 @@ impl Plugin for TileMapPlugin {
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
         let mut map = Map::new(commands.spawn().id());
-        let mut layer = Layer::new(&mut commands);
+        let mut layer = Layer::new(0, &mut commands);
 
         for x in 0..10 {
             for y in 0..10 {
@@ -39,17 +39,26 @@ impl TileMapPlugin {
                     height: TileHeight::Full,
                 };
 
-                let tile_entity = commands.spawn().insert(tile).id();
-
-                // tile.spawn(tile_entity, &mut commands, &graphics);
                 layer.insert_tile(&mut commands, tile, &graphics);
-                layer.tiles.insert(pos, tile_entity);
-                // commands.entity(layer.entity).add_child(tile_entity);
             }
         }
-        let mut layer2 = layer.clone();
-
         map.insert_layer(&mut commands, layer);
+
+        let mut layer2 = Layer::new(1, &mut commands);
+
+        for x in 0..10 {
+            for y in 0..10 {
+                if x % 2 == 0 && y % 3 == 0 {
+                    let pos = Pos(x, y);
+                    let tile = Tile {
+                        pos,
+                        height: TileHeight::Half,
+                    };
+
+                    layer2.insert_tile(&mut commands, tile, &graphics);
+                }
+            }
+        }
         map.insert_layer(&mut commands, layer2);
 
         map.spawn(&mut commands);
