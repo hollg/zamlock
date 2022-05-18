@@ -15,6 +15,12 @@ pub enum PreStartupSystemLabels {
 
 fn main() {
     App::new()
+        .insert_resource(WindowDescriptor {
+            title: "Zamlock".to_string(),
+            width: 640.,
+            height: 360.,
+            ..default()
+        })
         .add_plugins(DefaultPlugins)
         .add_plugins(TileMapPluginGroup)
         .add_plugin(CameraPlugin)

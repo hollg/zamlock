@@ -1,13 +1,13 @@
 use super::{graphics::MapSprites, pos::Pos};
 use bevy::prelude::*;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TileHeight {
     Full,
     Half,
 }
 
-#[derive(Component, Copy, Clone)]
+#[derive(Component, Copy, Clone, Debug)]
 pub struct Tile {
     /// cartesian, in relation to layer
     pub(crate) pos: Pos,
@@ -22,6 +22,7 @@ impl Tile {
         entity: Entity,
         commands: &mut Commands,
         graphics: &Res<MapSprites>,
+
         layer_index: usize,
     ) -> Entity {
         commands
