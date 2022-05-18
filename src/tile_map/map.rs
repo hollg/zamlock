@@ -9,19 +9,24 @@ pub struct Map {
 }
 
 impl Map {
+    pub(crate) fn new(entity: Entity) -> Map {
+        Map {
+            entity,
+            layers: vec![],
+        }
+    }
+
     pub(crate) fn insert_layer(&mut self, commands: &mut Commands, layer: Layer) {
         commands.entity(self.entity).add_child(layer.entity);
         self.layers.push(layer);
     }
 
-    pub(crate) fn spawn(&self, commands: &mut Commands, graphics: &Res<MapSprites>) {
+    pub(crate) fn spawn(&self, commands: &mut Commands) {
         commands
             .entity(self.entity)
             .insert_bundle(TransformBundle::default());
 
         for layer in &self.layers {
-            // let layer_commands = commands.entity(layer.entity);
-
             commands.entity(self.entity).add_child(layer.entity);
         }
     }

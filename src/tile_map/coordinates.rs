@@ -22,10 +22,10 @@ impl Coordinates for Pos {
         // bevy y axis is in the opposite direction
         coords.y = -coords.y;
         // TODO: account for layer here — higher layer - higher y
-        // coords.y += self.1 as f32 * TILE_SIZE / 2.0;
+        // coords.y += layer_num as f32 * TILE_SIZE / 2.0;
 
         // account for layer in this maths - higher layer = higher z
-        let z = (self.0 as f32 * 0.0001) + (self.1 as f32 * 0.001); 
+        let z = (self.0 as f32 * 0.0001) + (self.1 as f32 * 0.001);
 
         Vec3::new(coords.x, coords.y, z)
     }

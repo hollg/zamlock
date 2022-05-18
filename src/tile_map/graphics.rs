@@ -1,3 +1,4 @@
+use crate::PreStartupSystemLabels;
 use bevy::prelude::*;
 
 #[derive(Default)]
@@ -13,7 +14,10 @@ pub(crate) struct MapGraphicsPlugin;
 impl Plugin for MapGraphicsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(MapSprites::default())
-            .add_startup_system_to_stage(StartupStage::PreStartup, Self::load_graphics);
+            .add_startup_system_to_stage(
+                StartupStage::PreStartup,
+                Self::load_graphics.label(PreStartupSystemLabels::LoadGraphics),
+            );
     }
 }
 

@@ -2,30 +2,42 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use super::tile::{Pos, Tile, TileBuilder};
+use super::{
+    graphics::MapSprites,
+    tile::{Pos, Tile},
+};
 
+#[derive(Component, Clone)]
 pub struct Layer {
     pub entity: Entity,
     pub tiles: HashMap<Pos, Entity>,
 }
 
 impl Layer {
-    fn new(entity: Entity) -> Layer {
-        Layer {
-            entity,
-            tiles: HashMap::new(),
-        }
-    }
-
-    fn insert_tile(&mut self, commands: &mut Commands, tile: TileBuilder) {
-        let tile_entity = commands
+    pub(crate) fn new(commands: &mut Commands) -> Layer {
+        let entity = commands
             .spawn()
-            .insert(Tile {
-                pos: tile.pos,
-                height: tile.height,
-            })
+            .insert_bundle(TransformBundle::default())
             .id();
 
+        let layer = Layer {
+            entity,
+            tiles: HashMap::new(),
+        };
+
+        commands.entity(entity).insert(layer.clone());
+
+        layer
+    }
+
+    pub(crate) fn insert_tile(
+        &mut self,
+        commands: &mut Commands,
+        tile: Tile,
+        graphics: &Res<MapSprites>,
+    ) {
+        let tile_entity = tile.spawn(commands.spawn().id(), commands, graphics);
+        commands.entity(self.entity).add_child(tile_entity);
         self.tiles.insert(tile.pos, tile_entity);
     }
 }

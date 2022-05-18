@@ -13,13 +13,6 @@ pub enum TileHeight {
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct Pos(pub(crate) u32, pub(crate) u32);
 
-pub struct TileBuilder {
-    pub accessible: bool,
-    /// cartesian, in relation to layer
-    pub(crate) pos: Pos,
-    pub(crate) height: TileHeight,
-}
-
 #[derive(Component, Copy, Clone)]
 pub struct Tile {
     /// cartesian, in relation to layer
@@ -34,14 +27,19 @@ impl Tile {
         commands: &mut Commands,
         graphics: &Res<MapSprites>,
     ) -> Entity {
+        let sprite = match self.height {
+            TileHeight::Full => graphics
+                .full_tile
+                .choose(&mut thread_rng())
+                .expect("no tile sprites")
+                .clone(),
+            TileHeight::Half => graphics.half_tile.clone(),
+        };
+
         commands
             .entity(entity)
             .insert_bundle(SpriteBundle {
-                texture: graphics
-                    .full_tile
-                    .choose(&mut thread_rng())
-                    .expect("no tile sprites")
-                    .clone(),
+                texture: sprite,
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
                     ..default()

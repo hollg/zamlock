@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use crate::PreStartupSystemLabels;
 
 use bevy::prelude::*;
 
@@ -18,21 +18,17 @@ struct TileMapPlugin;
 
 impl Plugin for TileMapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system_to_stage(StartupStage::PostStartup, Self::spawn_map);
+        app.add_startup_system_to_stage(
+            StartupStage::PreStartup,
+            Self::spawn_map.after(PreStartupSystemLabels::LoadGraphics),
+        );
     }
 }
 
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
-        let mut map = Map {
-            entity: commands.spawn().id(),
-            layers: vec![],
-        };
-
-        let mut layer = Layer {
-            entity: commands.spawn().id(),
-            tiles: HashMap::new(),
-        };
+        let mut map = Map::new(commands.spawn().id());
+        let mut layer = Layer::new(&mut commands);
 
         for x in 0..10 {
             for y in 0..10 {
@@ -44,16 +40,18 @@ impl TileMapPlugin {
 
                 let tile_entity = commands.spawn().insert(tile).id();
 
-                tile.spawn(tile_entity, &mut commands, &graphics);
-
+                // tile.spawn(tile_entity, &mut commands, &graphics);
+                layer.insert_tile(&mut commands, tile, &graphics);
                 layer.tiles.insert(pos, tile_entity);
-                // commands.entity(layer.entity).add_child(tile_entity); 
+                // commands.entity(layer.entity).add_child(tile_entity);
             }
         }
+        let mut layer2 = layer.clone();
 
         map.insert_layer(&mut commands, layer);
+        map.insert_layer(&mut commands, layer2);
 
-        map.spawn(&mut commands, &graphics);
+        map.spawn(&mut commands);
     }
 }
 
