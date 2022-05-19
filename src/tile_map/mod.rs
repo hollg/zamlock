@@ -44,11 +44,17 @@ impl TileMapPlugin {
                 layer.insert_tile(&mut commands, tile, &graphics);
             }
         }
-        // map.insert_layer(&mut commands, layer);
 
         let mut layer2 = Layer::new(1, &mut commands);
 
-        let pos = Pos(0, 0);
+        // let pos = Pos(0, 0);
+        // let tile = Tile {
+        //     pos,
+        //     height: TileHeight::Half,
+        //     size: map.tile_size,
+        // };
+        // layer2.insert_tile(&mut commands, tile, &graphics);
+        let pos = Pos(0, 1);
         let tile = Tile {
             pos,
             height: TileHeight::Half,

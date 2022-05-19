@@ -1,7 +1,7 @@
-use bevy::{prelude::*, render::camera::{RenderTarget, ScalingMode}};
+use bevy::{prelude::*, render::camera::RenderTarget};
 
 pub(crate) struct CameraPlugin;
-pub const RESOLUTION: f32 = 16.0 / 9.0;
+
 #[derive(Component)]
 pub struct MainCamera;
 
@@ -13,17 +13,7 @@ impl Plugin for CameraPlugin {
 
 impl CameraPlugin {
     fn spawn_camera(mut commands: Commands) {
-        // Spell sprites camera
-        let mut camera = OrthographicCameraBundle::new_2d();
-
-        // camera.orthographic_projection.top = 1.0;
-        // camera.orthographic_projection.bottom = -1.0;
-
-        // camera.orthographic_projection.right = 1.0 * RESOLUTION;
-        // camera.orthographic_projection.left = -1.0 * RESOLUTION;
-
-        // camera.orthographic_projection.scaling_mode = ScalingMode::None;
-
+        let camera = OrthographicCameraBundle::new_2d();
         commands.spawn_bundle(camera).insert(MainCamera);
     }
 }
