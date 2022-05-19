@@ -35,12 +35,13 @@ impl TilePickingPlugin {
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
         if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
-            let mut picked_tile: Option<(Tile, Entity, usize)> = None;
+            let mut picked: Option<(Tile, Entity, usize)> = None;
 
             for layer in map.layers.iter().rev() {
-                if picked_tile.is_some() {
+                if picked.is_some() {
                     break;
                 }
+                // offset to layer 0 to find grid coords
                 let layer_offset = (map.tile_size / 4.0) * layer.index as f32;
                 let layer_offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - layer_offset);
                 let layer_offset_world_pos = map.screen_pos_to_world_pos(layer_offset_screen_pos);
@@ -49,19 +50,17 @@ impl TilePickingPlugin {
                     let tile = tile_query
                         .get(*tile_entity)
                         .expect("No tile for picked tile entity");
-                    picked_tile = Some((*tile, *tile_entity, layer.index));
+                    picked = Some((*tile, *tile_entity, layer.index));
                 }
             }
 
-            if picked_tile.is_none() {
-                return;
-            }
-
-            if !map.layers.iter().any(|layer| {
-                layer.index > picked_tile.unwrap().2
-                    && layer.tiles.get(&picked_tile.unwrap().0.pos).is_some()
-            }) {
-                new_active_tile = ActiveTile(Some(picked_tile.unwrap().1))
+            if let Some((picked_tile, picked_entity, picked_layer_index)) = picked {
+                // can't pick tiles that are underneath others
+                if !map.layers.iter().any(|layer| {
+                    layer.index > picked_layer_index && layer.tiles.get(&picked_tile.pos).is_some()
+                }) {
+                    new_active_tile = ActiveTile(Some(picked_entity))
+                }
             }
         }
 
@@ -108,7 +107,6 @@ impl TilePickingPlugin {
     }
 
     fn handle_tile_click(
-        mut commands: Commands,
         mouse_input: Res<Input<MouseButton>>,
         active_tile: Res<ActiveTile>,
         tile_query: Query<&Tile>,
@@ -122,22 +120,10 @@ impl TilePickingPlugin {
         }
 
         let tile_entity = active_tile.0.expect("No active tile entity");
-        let tile = tile_query
+        let _tile = tile_query
             .get(tile_entity)
             .expect("No tile for active tile entity");
 
-        let thing = commands
-            .spawn_bundle(SpriteBundle {
-                transform: Transform::from_translation(Vec3::new(0.0, tile.get_y_offset(), 20.0)),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::splat(2.0)),
-                    color: Color::rgb(0., 0., 0.),
-                    ..default()
-                },
-                ..default()
-            })
-            .id();
-
-        commands.entity(tile_entity).add_child(thing);
+        todo!()
     }
 }
