@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 
-use crate::camera::{mouse_pos_to_world_pos, MainCamera};
+use crate::camera::{mouse_pos_to_screen_pos, MainCamera};
 
-use super::{graphics::MapSprites, layer::Layer, tile::Tile};
+use super::{
+    graphics::MapSprites,
+    layer::Layer,
+    tile::{Tile, ToWorld},
+};
 
 pub(crate) struct TilePickingPlugin;
 
@@ -27,16 +31,18 @@ impl TilePickingPlugin {
     fn set_active_tile(
         wnds: Res<Windows>,
         q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-        layer_query: Query<(&Layer, &Children)>,
-        tile_query: Query<(&Tile, &GlobalTransform)>,
+        tile_query: Query<(&Tile, Entity)>,
         mut active_tile: ResMut<ActiveTile>,
     ) {
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
-        if let Some(world_pos) = mouse_pos_to_world_pos(wnds, q_camera) {
-            let mut layers: Vec<(&Layer, &Children)> = layer_query.iter().collect();
+        if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
+            let world_pos = screen_pos.to_world(32.0);
 
-            if let Some(tile_entity) = get_tile_at_pos(world_pos, &mut layers, &tile_query) {
+            if let Some((_tile, tile_entity)) = tile_query
+                .iter()
+                .find(|(tile, _entity)| tile.pos == world_pos)
+            {
                 new_active_tile = ActiveTile(Some(tile_entity));
             }
         }

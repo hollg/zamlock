@@ -19,7 +19,7 @@ impl CameraPlugin {
     }
 }
 
-pub(crate) fn mouse_pos_to_world_pos(
+pub(crate) fn mouse_pos_to_screen_pos(
     // need to get window dimensions
     wnds: Res<Windows>,
     // query to get camera transform

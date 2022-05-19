@@ -1,5 +1,6 @@
 use super::{graphics::MapSprites, pos::Pos};
 use bevy::prelude::*;
+use nalgebra::{Matrix1x2, Matrix2};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TileHeight {
@@ -75,8 +76,8 @@ impl Tile {
     }
 }
 
-trait ToWorld {
-    fn to_world(&self) -> Pos;
+pub(crate) trait ToWorld {
+    fn to_world(&self, size: f32) -> Pos;
 }
 
 impl ToWorld for Vec2 {
@@ -85,8 +86,18 @@ impl ToWorld for Vec2 {
         let b = -(0.5 * size);
         let c = 0.25 * size;
         let d = 0.25 * size;
-        
-        let x_transform = Vec2::new(0.5 * self.size, 0.25 * self.size);
-        let y_transform = Vec2::new(-(0.5 * self.size), 0.25 * self.size);
+
+        let world_to_screen_transform_matrix = Matrix2::new(a, b, c, d);
+        let screen_to_world_transform_matrix = world_to_screen_transform_matrix
+            .try_inverse()
+            .expect("Can't inverse matrix");
+
+        let screen_pos_matrix = Matrix1x2::new(self.x as f32, self.y as f32);
+
+        let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
+
+        let mut world_pos = Pos(world_pos_matrix.x as u32, -world_pos_matrix.y as u32);
+
+        world_pos
     }
 }
