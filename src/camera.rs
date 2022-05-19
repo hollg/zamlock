@@ -13,13 +13,12 @@ impl Plugin for CameraPlugin {
 
 impl CameraPlugin {
     fn spawn_camera(mut commands: Commands) {
-        commands
-            .spawn_bundle(OrthographicCameraBundle::new_2d())
-            .insert(MainCamera);
+        let camera = OrthographicCameraBundle::new_2d();
+        commands.spawn_bundle(camera).insert(MainCamera);
     }
 }
 
-pub(crate) fn mouse_pos_to_world_pos(
+pub(crate) fn mouse_pos_to_screen_pos(
     // need to get window dimensions
     wnds: Res<Windows>,
     // query to get camera transform
