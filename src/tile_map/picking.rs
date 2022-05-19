@@ -18,8 +18,7 @@ impl Plugin for TilePickingPlugin {
             .add_system_to_stage(
                 CoreStage::PreUpdate,
                 Self::hover_tile.after(Self::set_active_tile),
-            )
-            .add_system(Self::handle_tile_click.after(Self::set_active_tile));
+            );
     }
 }
 
@@ -104,26 +103,5 @@ impl TilePickingPlugin {
             .id();
 
         commands.entity(tile_entity).add_child(highlight);
-    }
-
-    fn handle_tile_click(
-        mouse_input: Res<Input<MouseButton>>,
-        active_tile: Res<ActiveTile>,
-        tile_query: Query<&Tile>,
-    ) {
-        if active_tile.0 == None {
-            return;
-        }
-
-        if !mouse_input.just_pressed(MouseButton::Left) {
-            return;
-        }
-
-        let tile_entity = active_tile.0.expect("No active tile entity");
-        let _tile = tile_query
-            .get(tile_entity)
-            .expect("No tile for active tile entity");
-
-        todo!()
     }
 }

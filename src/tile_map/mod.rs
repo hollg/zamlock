@@ -37,7 +37,7 @@ impl TileMapPlugin {
                 let pos = Pos(x, y);
                 let tile = Tile {
                     pos,
-                    height: TileHeight::Full,
+                    height: TileHeight::Half,
                     size: map.tile_size,
                 };
 
@@ -47,24 +47,27 @@ impl TileMapPlugin {
 
         let mut layer2 = Layer::new(1, &mut commands);
 
-        // let pos = Pos(0, 0);
-        // let tile = Tile {
-        //     pos,
-        //     height: TileHeight::Half,
-        //     size: map.tile_size,
-        // };
-        // layer2.insert_tile(&mut commands, tile, &graphics);
-        let pos = Pos(0, 1);
-        let tile = Tile {
-            pos,
-            height: TileHeight::Half,
-            size: map.tile_size,
-        };
+        layer2.insert_tile(
+            &mut commands,
+            Tile {
+                pos: Pos(0, 0),
+                height: TileHeight::Full,
+                size: map.tile_size,
+            },
+            &graphics,
+        );
 
-        layer2.insert_tile(&mut commands, tile, &graphics);
+        layer2.insert_tile(
+            &mut commands,
+            Tile {
+                pos: Pos(0, 1),
+                height: TileHeight::Half,
+                size: map.tile_size,
+            },
+            &graphics,
+        );
 
         map.insert_layers(&mut commands, &[layer, layer2]);
-        // map.insert_layer(&mut commands, layer);
 
         map.spawn(&mut commands);
     }

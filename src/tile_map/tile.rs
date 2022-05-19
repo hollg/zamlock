@@ -57,14 +57,14 @@ impl Tile {
 
         let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
 
-        let z = -(x as f32 * 0.0001) + -(y as f32 * 0.001) + (layer_index as f32 * 0.01);
+        let z = -(x as f32 * 0.0001) + -(y as f32 * 0.01) + (layer_index as f32 * 0.01);
 
         let height_offset = match tile_height {
             TileHeight::Full => layer_index as f32,
             TileHeight::Half => layer_index as f32 * 0.5,
         };
 
-        screen_pos.y += layer_index as f32 * height_offset * self.size / 2.0;
+        screen_pos.y += height_offset * self.size / 2.0;
 
         Vec3::new(screen_pos.x, screen_pos.y, z)
     }
