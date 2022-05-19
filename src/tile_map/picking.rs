@@ -29,19 +29,39 @@ impl TilePickingPlugin {
         q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
         mut active_tile: ResMut<ActiveTile>,
         map_query: Query<&Map>,
+        tile_query: Query<&Tile>,
     ) {
         let map = map_query.get_single().expect("No map!");
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
         if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
-            for layer in map.layers.iter() {
+            let mut picked_tile: Option<(Tile, Entity, usize)> = None;
+
+            for layer in map.layers.iter().rev() {
+                if picked_tile.is_some() {
+                    break;
+                }
                 let layer_offset = (map.tile_size / 4.0) * layer.index as f32;
                 let layer_offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - layer_offset);
                 let layer_offset_world_pos = map.screen_pos_to_world_pos(layer_offset_screen_pos);
 
                 if let Some(tile_entity) = layer.tiles.get(&layer_offset_world_pos) {
-                    new_active_tile = ActiveTile(Some(*tile_entity))
+                    let tile = tile_query
+                        .get(*tile_entity)
+                        .expect("No tile for picked tile entity");
+                    picked_tile = Some((*tile, *tile_entity, layer.index));
                 }
+            }
+
+            if picked_tile.is_none() {
+                return;
+            }
+
+            if !map.layers.iter().any(|layer| {
+                layer.index > picked_tile.unwrap().2
+                    && layer.tiles.get(&picked_tile.unwrap().0.pos).is_some()
+            }) {
+                new_active_tile = ActiveTile(Some(picked_tile.unwrap().1))
             }
         }
 
