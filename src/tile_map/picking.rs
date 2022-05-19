@@ -4,7 +4,7 @@ use crate::camera::{mouse_pos_to_screen_pos, MainCamera};
 
 use super::{
     graphics::MapSprites,
-    layer::Layer,
+    map::Map,
     tile::{Tile, ToWorld},
 };
 
@@ -33,11 +33,13 @@ impl TilePickingPlugin {
         q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
         tile_query: Query<(&Tile, Entity)>,
         mut active_tile: ResMut<ActiveTile>,
+        map_query: Query<&Map>,
     ) {
+        let map = map_query.get_single().expect("No map!");
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
         if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
-            let world_pos = screen_pos.to_world(32.0);
+            let world_pos = map.screen_pos_to_world_pos(screen_pos);
 
             if let Some((_tile, tile_entity)) = tile_query
                 .iter()
@@ -122,44 +124,4 @@ impl TilePickingPlugin {
 
         commands.entity(tile_entity).add_child(thing);
     }
-}
-
-pub fn get_tile_at_pos(
-    world_pos: Vec2,
-    layers: &mut [(&Layer, &Children)],
-    tile_query: &Query<(&Tile, &GlobalTransform)>,
-) -> Option<Entity> {
-    // put top layers in front
-    layers.sort_by_key(|(l, _c)| l.index);
-    layers.reverse();
-
-    let mut tile_at_pos: Option<Entity> = None;
-
-    for (_layer, children) in layers.iter() {
-        if tile_at_pos.is_some() {
-            break;
-        }
-
-        for tile_entity in children.iter() {
-            let (tile, global_transform) = tile_query
-                .get(*tile_entity)
-                .expect("No tile for that child");
-
-            let tile_pos = global_transform.translation.truncate();
-            // match against center of top face
-            let offset_pos = tile_pos + tile.get_y_offset();
-
-            // TODO: I think this is broken because the tile top face
-            // is an irregular shape; this code would probably work if it were circular
-
-            if (offset_pos.x - world_pos.x).abs() <= tile.size / 4.0
-                && (offset_pos.y - world_pos.y).abs() <= tile.size / 4.0
-            {
-                // matches.push((tile_entity, tile, global_transform));
-                tile_at_pos = Some(*tile_entity);
-            }
-        }
-    }
-
-    tile_at_pos
 }

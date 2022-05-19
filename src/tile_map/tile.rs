@@ -45,29 +45,28 @@ impl Tile {
 
     /// get world coords for isometric grid
     pub(crate) fn to_screen_space(self, layer_index: usize, tile_height: TileHeight) -> Vec3 {
-        let x_transform = Vec2::new(0.5 * self.size, 0.25 * self.size);
-        let y_transform = Vec2::new(-(0.5 * self.size), 0.25 * self.size);
+        let a = 0.5 * self.size;
+        let b = -(0.5 * self.size);
+        let c = 0.25 * self.size;
+        let d = 0.25 * self.size;
 
         let Pos(x, y) = self.pos;
+        let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
 
-        // transform x + z into 2d screen space coord
-        let mut coords = (x as f32 * x_transform) + (y as f32 * y_transform);
+        let pos_as_matrix = Matrix1x2::new(x as f32, y as f32);
 
-        // bevy y axis is in the opposite direction
-        coords.y = -coords.y;
+        let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
 
-        // TODO: I'm pretty sure this is wrong for layer indexes greater than 1
-        // — maybe it's layer_index - 0.5 in those cases?
+        let z = -(x as f32 * 0.0001) + -(y as f32 * 0.001) + (layer_index as f32 * 0.01);
 
         let height_offset = match tile_height {
             TileHeight::Full => layer_index as f32,
             TileHeight::Half => layer_index as f32 * 0.5,
         };
-        coords.y += height_offset * self.size / 2.0;
 
-        let z = (x as f32 * 0.0001) + (y as f32 * 0.001) + (layer_index as f32 * 0.01);
+        screen_pos.y += layer_index as f32 * height_offset * self.size / 2.0;
 
-        Vec3::new(coords.x, coords.y, z)
+        Vec3::new(screen_pos.x, screen_pos.y, z)
     }
 
     /// returns y coord offset to from sprite origin to centre of top face
@@ -87,7 +86,7 @@ impl ToWorld for Vec2 {
         let c = 0.25 * size;
         let d = 0.25 * size;
 
-        let world_to_screen_transform_matrix = Matrix2::new(a, b, c, d);
+        let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
         let screen_to_world_transform_matrix = world_to_screen_transform_matrix
             .try_inverse()
             .expect("Can't inverse matrix");
@@ -96,7 +95,7 @@ impl ToWorld for Vec2 {
 
         let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
 
-        let mut world_pos = Pos(world_pos_matrix.x as u32, -world_pos_matrix.y as u32);
+        let mut world_pos = Pos(world_pos_matrix.x as u32, world_pos_matrix.y as u32);
 
         world_pos
     }

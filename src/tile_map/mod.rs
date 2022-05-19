@@ -32,8 +32,8 @@ impl TileMapPlugin {
         let mut map = Map::new(commands.spawn().id(), TILE_SIZE);
         let mut layer = Layer::new(0, &mut commands);
 
-        for x in 0..10 {
-            for y in 0..10 {
+        for y in 0..10 {
+            for x in 0..10 {
                 let pos = Pos(x, y);
                 let tile = Tile {
                     pos,
@@ -46,24 +46,19 @@ impl TileMapPlugin {
         }
         // map.insert_layer(&mut commands, layer);
 
-        // let mut layer2 = Layer::new(1, &mut commands);
+        let mut layer2 = Layer::new(1, &mut commands);
 
-        // for x in 0..10 {
-        //     for y in 0..10 {
-        //         if x % 2 == 0 && y % 3 == 0 {
-        //             let pos = Pos(x, y);
-        //             let tile = Tile {
-        //                 pos,
-        //                 height: TileHeight::Half,
-        //                 size: map.tile_size,
-        //             };
+        let pos = Pos(0, 0);
+        let tile = Tile {
+            pos,
+            height: TileHeight::Half,
+            size: map.tile_size,
+        };
 
-        //             layer2.insert_tile(&mut commands, tile, &graphics);
-        //         }
-        //     }
-        // }
-        // map.insert_layers(&mut commands, &[layer, layer2]);
-        map.insert_layer(&mut commands, layer);
+        layer2.insert_tile(&mut commands, tile, &graphics);
+
+        map.insert_layers(&mut commands, &[layer, layer2]);
+        // map.insert_layer(&mut commands, layer);
 
         map.spawn(&mut commands);
     }
