@@ -1,7 +1,7 @@
 use ordered_float::OrderedFloat;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct Pos(
+pub struct Pos(
     pub(crate) OrderedFloat<f32>,
     pub(crate) OrderedFloat<f32>,
     pub(crate) OrderedFloat<f32>,

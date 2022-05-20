@@ -7,12 +7,13 @@ mod picking;
 mod pos;
 mod tile;
 
-use map::Map;
+use graphics::MapSprites;
 use picking::TilePickingPlugin;
-use pos::Pos;
-use tile::{Tile, TileHeight};
+use tile::TileHeight;
 
-use self::graphics::MapSprites;
+pub use map::Map;
+pub use pos::Pos;
+pub use tile::Tile;
 
 struct TileMapPlugin;
 

@@ -11,7 +11,7 @@ pub struct Map {
 
     pub(crate) tile_size: f32,
     pub(crate) tiles: HashMap<Pos, Entity>,
-    y_offset: f32,
+    pub y_offset: f32,
 }
 
 impl Map {

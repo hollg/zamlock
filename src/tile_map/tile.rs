@@ -60,7 +60,10 @@ impl Tile {
     }
 
     /// returns y coord offset to from sprite origin to centre of top face
-    pub(crate) fn get_y_offset(&self) -> f32 {
-        self.size / 4.0
+    pub(crate) fn get_y_offset(&self) -> Vec3 {
+        let mut coords = self.to_screen_space();
+        coords.y += self.size / 4.0;
+
+        coords
     }
 }
