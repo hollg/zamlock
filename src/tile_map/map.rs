@@ -32,7 +32,7 @@ impl Map {
         graphics: &Res<MapSprites>,
     ) {
         let tile_entity = commands.spawn().id();
-        tile.spawn(tile_entity, commands, graphics, 0);
+        tile.spawn(tile_entity, commands, graphics);
 
         commands.entity(self.entity).add_child(tile_entity);
         self.tiles.insert(pos, tile_entity);

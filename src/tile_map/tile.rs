@@ -23,8 +23,6 @@ impl Tile {
         entity: Entity,
         commands: &mut Commands,
         graphics: &Res<MapSprites>,
-
-        layer_index: usize,
     ) -> Entity {
         commands
             .entity(entity)
@@ -55,14 +53,9 @@ impl Tile {
 
         let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
 
-        let height_offset = match self.height {
-            TileHeight::Full => f32::from(z),
-            TileHeight::Half => f32::from(z) * 0.5,
-        };
+        screen_pos.y += f32::from(z) * self.size / 2.0;
 
-        screen_pos.y += height_offset * self.size / 2.0;
-
-        let z_index = -(f32::from(x) * 0.0001) + -(f32::from(y) * 0.01) + (f32::from(z) * 0.01);
+        let z_index = -(f32::from(x) * 0.001) + -(f32::from(y) * 0.01) + (f32::from(z) * 0.01);
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 
