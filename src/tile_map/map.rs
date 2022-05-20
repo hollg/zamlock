@@ -8,14 +8,16 @@ pub struct Map {
     pub(crate) entity: Entity,
     pub(crate) layers: Vec<Layer>,
     pub(crate) tile_size: f32,
+    y_offset: f32,
 }
 
 impl Map {
-    pub(crate) fn new(entity: Entity, tile_size: f32) -> Map {
+    pub(crate) fn new(entity: Entity, tile_size: f32, y_offset: f32) -> Map {
         Map {
             entity,
             layers: vec![],
             tile_size,
+            y_offset,
         }
     }
 
@@ -36,7 +38,10 @@ impl Map {
         commands
             .entity(self.entity)
             .insert(self.clone())
-            .insert_bundle(TransformBundle::default());
+            .insert_bundle(TransformBundle {
+                local: Transform::from_xyz(0.0, self.y_offset, 0.0),
+                ..default()
+            });
 
         for layer in &self.layers {
             commands.entity(self.entity).add_child(layer.entity);
@@ -54,7 +59,8 @@ impl Map {
             .try_inverse()
             .expect("Can't inverse matrix");
 
-        let screen_pos_matrix = Matrix1x2::new(screen_pos.x as f32, screen_pos.y as f32);
+        let screen_pos_matrix =
+            Matrix1x2::new(screen_pos.x as f32, screen_pos.y - self.y_offset as f32);
 
         let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
 

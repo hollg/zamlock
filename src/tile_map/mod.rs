@@ -29,7 +29,7 @@ impl Plugin for TileMapPlugin {
 
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
-        let mut map = Map::new(commands.spawn().id(), TILE_SIZE);
+        let mut map = Map::new(commands.spawn().id(), TILE_SIZE, -100.0);
         let mut layer = Layer::new(0, &mut commands);
 
         for y in 0..10 {
