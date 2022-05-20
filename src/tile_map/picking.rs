@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::camera::{mouse_pos_to_screen_pos, MainCamera};
 
-use super::{graphics::MapSprites, map::Map, tile::Tile};
+use super::{graphics::MapSprites, map::Map, pos::Pos, tile::Tile};
 
 pub(crate) struct TilePickingPlugin;
 
@@ -28,37 +28,38 @@ impl TilePickingPlugin {
         q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
         mut active_tile: ResMut<ActiveTile>,
         map_query: Query<&Map>,
-        tile_query: Query<&Tile>,
     ) {
         let map = map_query.get_single().expect("No map!");
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
         if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
-            let mut picked: Option<(Tile, Entity, usize)> = None;
+            let mut picked: Option<(Pos, Entity)> = None;
 
-            for layer in map.layers.iter().rev() {
+            let mut tiles = map.tiles.iter().collect::<Vec<(&Pos, &Entity)>>();
+            // lowest elevation first
+            tiles.sort_by(|(point_a, _), (point_b, _)| point_a.1.cmp(&point_b.1));
+            // then reverse!
+            for (pos, entity) in tiles.iter().rev() {
                 if picked.is_some() {
                     break;
                 }
-                // offset to layer 0 to find grid coords
-                let layer_offset = (map.tile_size / 4.0) * layer.index as f32;
-                let layer_offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - layer_offset);
-                let layer_offset_world_pos = map.screen_pos_to_world_pos(layer_offset_screen_pos);
 
-                if let Some(tile_entity) = layer.tiles.get(&layer_offset_world_pos) {
-                    let tile = tile_query
-                        .get(*tile_entity)
-                        .expect("No tile for picked tile entity");
-                    picked = Some((*tile, *tile_entity, layer.index));
+                let y_offset = (map.tile_size / 2.0) * f32::from(pos.1);
+
+                let offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - y_offset);
+                let offset_world_pos = map.screen_pos_to_world_pos(offset_screen_pos);
+
+                if pos.0 == offset_world_pos.0 && pos.2 == offset_world_pos.2 {
+                    picked = Some((**pos, **entity));
                 }
             }
 
-            if let Some((picked_tile, picked_entity, picked_layer_index)) = picked {
+            if let Some((picked_pos, picked_entity)) = picked {
                 // can't pick tiles that are underneath others
-                if !map.layers.iter().any(|layer| {
-                    layer.index > picked_layer_index && layer.tiles.get(&picked_tile.pos).is_some()
+                if !tiles.iter().any(|(pos, _)| {
+                    pos.0 == picked_pos.0 && pos.2 == picked_pos.2 && pos.1 > picked_pos.1
                 }) {
-                    new_active_tile = ActiveTile(Some(picked_entity))
+                    new_active_tile = ActiveTile(Some(picked_entity));
                 }
             }
         }
@@ -96,7 +97,7 @@ impl TilePickingPlugin {
         let highlight = commands
             .spawn_bundle(SpriteBundle {
                 texture: graphics.tile_hover_overlay.clone(),
-                transform: Transform::from_xyz(0.0, tile.size / 4.0, 0.01),
+                transform: Transform::from_xyz(0.0, tile.size / 4.0, 0.001),
                 ..default()
             })
             .insert(Highlight)

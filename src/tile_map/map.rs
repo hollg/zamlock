@@ -1,13 +1,16 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use nalgebra::{Matrix1x2, Matrix2};
 
-use super::{layer::Layer, pos::Pos};
+use super::{graphics::MapSprites, pos::Pos, tile::Tile};
 
 #[derive(Component, Clone)]
 pub struct Map {
     pub(crate) entity: Entity,
-    pub(crate) layers: Vec<Layer>,
+
     pub(crate) tile_size: f32,
+    pub(crate) tiles: HashMap<Pos, Entity>,
     y_offset: f32,
 }
 
@@ -15,21 +18,24 @@ impl Map {
     pub(crate) fn new(entity: Entity, tile_size: f32, y_offset: f32) -> Map {
         Map {
             entity,
-            layers: vec![],
             tile_size,
             y_offset,
+            tiles: HashMap::new(),
         }
     }
 
-    pub(crate) fn insert_layer(&mut self, commands: &mut Commands, layer: Layer) {
-        commands.entity(self.entity).add_child(layer.entity);
-        self.layers.push(layer);
-    }
+    pub(crate) fn insert_tile(
+        &mut self,
+        commands: &mut Commands,
+        pos: Pos,
+        tile: Tile,
+        graphics: &Res<MapSprites>,
+    ) {
+        let tile_entity = commands.spawn().id();
+        tile.spawn(tile_entity, commands, graphics);
 
-    pub(crate) fn insert_layers(&mut self, commands: &mut Commands, layers: &[Layer]) {
-        for layer in layers {
-            self.insert_layer(commands, layer.clone());
-        }
+        commands.entity(self.entity).add_child(tile_entity);
+        self.tiles.insert(pos, tile_entity);
     }
 
     /// This should only be called once, in startup. If you call it on the Map you get from a query
@@ -42,10 +48,6 @@ impl Map {
                 local: Transform::from_xyz(0.0, self.y_offset, 0.0),
                 ..default()
             });
-
-        for layer in &self.layers {
-            commands.entity(self.entity).add_child(layer.entity);
-        }
     }
 
     pub(crate) fn screen_pos_to_world_pos(&self, screen_pos: Vec2) -> Pos {
@@ -64,6 +66,6 @@ impl Map {
 
         let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
 
-        Pos(world_pos_matrix.x as u32, world_pos_matrix.y as u32)
+        Pos::new(world_pos_matrix.x.floor(), 0.0, world_pos_matrix.y.floor())
     }
 }
