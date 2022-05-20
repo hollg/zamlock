@@ -2,13 +2,11 @@ use crate::{PreStartupSystemLabels, TILE_SIZE};
 use bevy::prelude::*;
 
 mod graphics;
-mod layer;
 mod map;
 mod picking;
 mod pos;
 mod tile;
 
-use layer::Layer;
 use map::Map;
 use picking::TilePickingPlugin;
 use pos::Pos;
@@ -30,44 +28,32 @@ impl Plugin for TileMapPlugin {
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
         let mut map = Map::new(commands.spawn().id(), TILE_SIZE, -100.0);
-        let mut layer = Layer::new(0, &mut commands);
 
-        for y in 0..10 {
-            for x in 0..10 {
-                let pos = Pos(x, y);
+        for x in 0..10 {
+            for y in 0..10 {
+                let x = x as f32;
+                let y = y as f32;
+                let pos = Pos::new(x as f32, y as f32, 0.0);
+
                 let tile = Tile {
                     pos,
-                    height: TileHeight::Half,
+                    height: TileHeight::Full,
                     size: map.tile_size,
                 };
 
-                layer.insert_tile(&mut commands, tile, &graphics);
+                map.insert_tile(&mut commands, pos, tile, &graphics);
             }
         }
 
-        let mut layer2 = Layer::new(1, &mut commands);
+        let pos = Pos::new(0.0, 0.0, 1.0);
 
-        layer2.insert_tile(
-            &mut commands,
-            Tile {
-                pos: Pos(0, 0),
-                height: TileHeight::Full,
-                size: map.tile_size,
-            },
-            &graphics,
-        );
+        let tile = Tile {
+            pos,
+            height: TileHeight::Full,
+            size: map.tile_size,
+        };
 
-        layer2.insert_tile(
-            &mut commands,
-            Tile {
-                pos: Pos(0, 1),
-                height: TileHeight::Half,
-                size: map.tile_size,
-            },
-            &graphics,
-        );
-
-        map.insert_layers(&mut commands, &[layer, layer2]);
+        map.insert_tile(&mut commands, pos, tile, &graphics);
 
         map.spawn(&mut commands);
     }
