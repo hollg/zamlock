@@ -30,10 +30,10 @@ impl TileMapPlugin {
         let mut map = Map::new(commands.spawn().id(), TILE_SIZE, -100.0);
 
         for x in 0..10 {
-            for y in 0..10 {
+            for z in 0..10 {
                 let x = x as f32;
-                let y = y as f32;
-                let pos = Pos::new(x as f32, y as f32, 0.0);
+                let z = z as f32;
+                let pos = Pos::new(x, 0.0, z);
 
                 let tile = Tile {
                     pos,
@@ -45,7 +45,7 @@ impl TileMapPlugin {
             }
         }
 
-        let pos = Pos::new(0.0, 0.0, 1.0);
+        let pos = Pos::new(0.0, 1.0, 0.0);
 
         let tile = Tile {
             pos,
@@ -55,8 +55,7 @@ impl TileMapPlugin {
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
 
-
-        let pos = Pos::new(1.0, 0.0, 0.5);
+        let pos = Pos::new(1.0, 0.5, 0.0);
         let tile = Tile {
             pos,
             height: TileHeight::Half,
@@ -65,17 +64,16 @@ impl TileMapPlugin {
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
 
-        let pos = Pos::new(0.0, 0.0, 1.5);
+        let pos = Pos::new(0.0, 1.5, 0.0);
         let tile = Tile {
             pos,
             height: TileHeight::Half,
             size: map.tile_size,
         };
 
-
         map.insert_tile(&mut commands, pos, tile, &graphics);
 
-        let pos = Pos::new(5.0, 5.0, 1.0);
+        let pos = Pos::new(5.0, 1.0, 5.0);
         let tile = Tile {
             pos,
             height: TileHeight::Full,
@@ -84,7 +82,7 @@ impl TileMapPlugin {
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
 
-        let pos = Pos::new(5.0, 4.0, 0.5);
+        let pos = Pos::new(5.0, 0.5, 4.0);
         let tile = Tile {
             pos,
             height: TileHeight::Half,

@@ -49,13 +49,13 @@ impl Tile {
         let Pos(x, y, z) = self.pos;
         let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
 
-        let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(y));
+        let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(z));
 
         let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
 
-        screen_pos.y += f32::from(z) * self.size / 2.0;
+        screen_pos.y += f32::from(y) * self.size / 2.0;
 
-        let z_index = -(f32::from(x) * 0.001) + -(f32::from(y) * 0.01) + (f32::from(z) * 0.01);
+        let z_index = -(f32::from(x) * 0.001) + -(f32::from(z) * 0.01) + (f32::from(y) * 0.01);
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 

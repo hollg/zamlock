@@ -66,6 +66,6 @@ impl Map {
 
         let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
 
-        Pos::new(world_pos_matrix.x.floor(), world_pos_matrix.y.floor(), 0.0)
+        Pos::new(world_pos_matrix.x.floor(), 0.0, world_pos_matrix.y.floor())
     }
 }
