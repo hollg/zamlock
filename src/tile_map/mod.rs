@@ -55,6 +55,16 @@ impl TileMapPlugin {
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
 
+
+        let pos = Pos::new(1.0, 0.0, 1.0);
+        let tile = Tile {
+            pos,
+            height: TileHeight::Half,
+            size: map.tile_size,
+        };
+
+        map.insert_tile(&mut commands, pos, tile, &graphics);
+
         map.spawn(&mut commands);
     }
 }
