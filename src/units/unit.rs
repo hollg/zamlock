@@ -45,13 +45,11 @@ impl UnitPlugin {
 
     fn spawn_unit(mut commands: Commands, graphics: ResMut<UnitSprites>, map_query: Query<&Map>) {
         let map = map_query.get_single().expect("Not exactly 1 map");
-        let player_starting_pos = Pos::new(9.0, 0.0, 9.0);
+        let player_starting_pos = Pos::new(6.0, 0.0, 5.0);
+        // let player_starting_pos = Pos::new(1.0, 0.5, 0.0);
 
         let tile_entity = map.tiles.get(&player_starting_pos).expect("No such tile");
-
-        let mut screen_coords =
-            map.world_pos_to_screen_pos(player_starting_pos) + map.tile_y_offset();
-        screen_coords.z = 11.0;
+        let screen_coords = map.world_pos_to_unit_screen_pos_absolute(player_starting_pos);
 
         commands
             .spawn_bundle(SpriteBundle {

@@ -47,7 +47,7 @@ impl TilePickingPlugin {
 
                 // translate mouse pos to ground level grid coord and pick current tile
                 // if it matches on x and z coords
-                let y_offset = map.tile_y_offset() * f32::from(pos.y);
+                let y_offset = map.tile_height() * f32::from(pos.y);
                 let offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - y_offset);
                 let offset_world_pos = map.screen_pos_to_world_pos(offset_screen_pos);
 

@@ -47,7 +47,12 @@ impl Map {
         graphics: &Res<MapSprites>,
     ) {
         let tile_entity = commands.spawn().id();
-        tile.spawn(tile_entity, commands, graphics, self.world_pos_to_screen_pos(pos));
+        tile.spawn(
+            tile_entity,
+            commands,
+            graphics,
+            self.world_pos_to_screen_pos(pos),
+        );
 
         commands.entity(self.entity).add_child(tile_entity);
         self.tiles.insert(pos, tile_entity);
@@ -79,6 +84,10 @@ impl Map {
     }
 
     /// translate grid pos into screen space coords
+    ///
+    /// Returns translation relative to `self.translation`, i.e. suitable for child entitites.
+    ///
+    /// For a non-relative result, use `map.world_pos_to_screen_pos_absolute()`
     pub(crate) fn world_pos_to_screen_pos(&self, world_pos: Pos) -> Vec3 {
         let world_to_screen_transform_matrix = self.world_to_screen_transform_matrix();
         let UnorderedPos { x, y, z } = world_pos.into();
@@ -91,6 +100,11 @@ impl Map {
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 
+    pub(crate) fn world_pos_to_screen_pos_absolute(&self, world_pos: Pos) -> Vec3 {
+        self.world_pos_to_screen_pos(world_pos) + self.translation
+    }
+
+    // maths courtesy of https://www.youtube.com/watch?v=04oQ2jOUjkU
     fn world_to_screen_transform_matrix(&self) -> Matrix2<f32> {
         let a = 0.5 * self.tile_size;
         let b = -(0.5 * self.tile_size);
@@ -104,8 +118,23 @@ impl Map {
         self.world_to_screen_transform_matrix().try_inverse()
     }
 
-    /// Get distance between centre of tile sprite and centre of top face
-    pub(crate) fn tile_y_offset(&self) -> f32 {
+    pub(crate) fn tile_height(&self) -> f32 {
         self.tile_size / 2.0
+    }
+
+    /// Returns distance between centre of tile sprite ("closest" vertex to camera)
+    /// and centre of top face
+    pub fn tile_top_y_offset(&self) -> f32 {
+        self.tile_height() / 2.0
+    }
+
+    // Returns the screen coords for the centre of the top face of a tile in the provided
+    // grid position. Use this to place things "on" tiles
+    pub fn world_pos_to_unit_screen_pos_absolute(&self, world_pos: Pos) -> Vec3 {
+        let mut coords = self.world_pos_to_screen_pos_absolute(world_pos);
+        coords.y += self.tile_top_y_offset();
+        // in front of tile highlight sprite, behind taller tiles
+        coords.z += 0.005;
+        coords
     }
 }
