@@ -11,15 +11,17 @@ pub struct Map {
 
     pub(crate) tile_size: f32,
     pub(crate) tiles: HashMap<Pos, Entity>,
-    y_offset: f32,
+    /// Positions the map on the screen. This value is important when mapping screen coordinates
+    /// to world/grid coordinates
+    translation: Vec3,
 }
 
 impl Map {
-    pub(crate) fn new(entity: Entity, tile_size: f32, y_offset: f32) -> Map {
+    pub(crate) fn new(entity: Entity, tile_size: f32, translation: Vec3) -> Map {
         Map {
             entity,
             tile_size,
-            y_offset,
+            translation,
             tiles: HashMap::new(),
         }
     }
@@ -45,7 +47,7 @@ impl Map {
             .entity(self.entity)
             .insert(self.clone())
             .insert_bundle(TransformBundle {
-                local: Transform::from_xyz(0.0, self.y_offset, 0.0),
+                local: Transform::from_translation(self.translation),
                 ..default()
             });
     }
@@ -61,8 +63,9 @@ impl Map {
             .try_inverse()
             .expect("Can't inverse matrix");
 
-        let screen_pos_matrix =
-            Matrix1x2::new(screen_pos.x as f32, screen_pos.y - self.y_offset as f32);
+        let offset_screen_pos = screen_pos - self.translation.truncate();
+
+        let screen_pos_matrix = Matrix1x2::new(offset_screen_pos.x, offset_screen_pos.y);
 
         let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
 

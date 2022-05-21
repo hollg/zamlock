@@ -27,7 +27,11 @@ impl Plugin for TileMapPlugin {
 
 impl TileMapPlugin {
     fn spawn_map(mut commands: Commands, graphics: Res<MapSprites>) {
-        let mut map = Map::new(commands.spawn().id(), TILE_SIZE, -100.0);
+        let mut map = Map::new(
+            commands.spawn().id(),
+            TILE_SIZE,
+            Vec3::new(0.0, -100.0, 0.0),
+        );
 
         for x in 0..10 {
             for z in 0..10 {
