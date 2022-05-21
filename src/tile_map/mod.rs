@@ -40,7 +40,6 @@ impl TileMapPlugin {
                 let pos = Pos::new(x, 0.0, z);
 
                 let tile = Tile {
-                    pos,
                     height: TileHeight::Full,
                     size: map.tile_size,
                 };
@@ -52,7 +51,6 @@ impl TileMapPlugin {
         let pos = Pos::new(0.0, 1.0, 0.0);
 
         let tile = Tile {
-            pos,
             height: TileHeight::Full,
             size: map.tile_size,
         };
@@ -61,7 +59,6 @@ impl TileMapPlugin {
 
         let pos = Pos::new(1.0, 0.5, 0.0);
         let tile = Tile {
-            pos,
             height: TileHeight::Half,
             size: map.tile_size,
         };
@@ -70,7 +67,6 @@ impl TileMapPlugin {
 
         let pos = Pos::new(0.0, 1.5, 0.0);
         let tile = Tile {
-            pos,
             height: TileHeight::Half,
             size: map.tile_size,
         };
@@ -79,7 +75,6 @@ impl TileMapPlugin {
 
         let pos = Pos::new(5.0, 1.0, 5.0);
         let tile = Tile {
-            pos,
             height: TileHeight::Full,
             size: map.tile_size,
         };
@@ -88,7 +83,6 @@ impl TileMapPlugin {
 
         let pos = Pos::new(5.0, 0.5, 4.0);
         let tile = Tile {
-            pos,
             height: TileHeight::Half,
             size: map.tile_size,
         };

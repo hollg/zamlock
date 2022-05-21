@@ -34,7 +34,7 @@ impl Map {
         graphics: &Res<MapSprites>,
     ) {
         let tile_entity = commands.spawn().id();
-        tile.spawn(tile_entity, commands, graphics);
+        tile.spawn(tile_entity, commands, graphics, self.to_screen_space(pos));
 
         commands.entity(self.entity).add_child(tile_entity);
         self.tiles.insert(pos, tile_entity);
@@ -53,22 +53,40 @@ impl Map {
     }
 
     pub(crate) fn screen_pos_to_world_pos(&self, screen_pos: Vec2) -> Pos {
+        let screen_to_world_transform_matrix = self
+            .screen_to_world_transform_matrix()
+            .expect("Can't inverse matrix");
+
+        let offset_screen_pos = screen_pos - self.translation.truncate();
+        let screen_pos_matrix = Matrix1x2::new(offset_screen_pos.x, offset_screen_pos.y);
+        let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
+
+        Pos::new(world_pos_matrix.x.floor(), 0.0, world_pos_matrix.y.floor())
+    }
+
+    /// get world coords for isometric grid
+    pub(crate) fn to_screen_space(&self, world_pos: Pos) -> Vec3 {
+        let world_to_screen_transform_matrix = self.world_to_screen_transform_matrix();
+        let Pos { x, y, z } = world_pos;
+
+        let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(z));
+        let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
+        screen_pos.y += f32::from(y) * self.tile_size / 2.0;
+
+        let z_index = -(f32::from(x) * 0.001) + -(f32::from(z) * 0.01) + (f32::from(y) * 0.01);
+        Vec3::new(screen_pos.x, screen_pos.y, z_index)
+    }
+
+    fn world_to_screen_transform_matrix(&self) -> Matrix2<f32> {
         let a = 0.5 * self.tile_size;
         let b = -(0.5 * self.tile_size);
         let c = 0.25 * self.tile_size;
         let d = 0.25 * self.tile_size;
 
-        let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
-        let screen_to_world_transform_matrix = world_to_screen_transform_matrix
-            .try_inverse()
-            .expect("Can't inverse matrix");
+        Matrix2::new(a, c, b, d)
+    }
 
-        let offset_screen_pos = screen_pos - self.translation.truncate();
-
-        let screen_pos_matrix = Matrix1x2::new(offset_screen_pos.x, offset_screen_pos.y);
-
-        let world_pos_matrix = screen_pos_matrix * screen_to_world_transform_matrix;
-
-        Pos::new(world_pos_matrix.x.floor(), 0.0, world_pos_matrix.y.floor())
+    fn screen_to_world_transform_matrix(&self) -> Option<Matrix2<f32>> {
+        self.world_to_screen_transform_matrix().try_inverse()
     }
 }

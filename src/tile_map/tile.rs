@@ -1,6 +1,5 @@
-use super::{graphics::MapSprites, pos::Pos};
+use super::graphics::MapSprites;
 use bevy::prelude::*;
-use nalgebra::{Matrix1x2, Matrix2};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TileHeight {
@@ -10,8 +9,6 @@ pub enum TileHeight {
 
 #[derive(Component, Copy, Clone, Debug)]
 pub struct Tile {
-    /// cartesian, in relation to layer
-    pub(crate) pos: Pos,
     pub(crate) height: TileHeight,
     /// height/width in pixels (tile must be square!)
     pub(crate) size: f32,
@@ -23,6 +20,7 @@ impl Tile {
         entity: Entity,
         commands: &mut Commands,
         graphics: &Res<MapSprites>,
+        translation: Vec3,
     ) -> Entity {
         commands
             .entity(entity)
@@ -32,30 +30,10 @@ impl Tile {
                     custom_size: Some(Vec2::splat(self.size)),
                     ..default()
                 },
-                transform: Transform::from_translation(self.to_screen_space()),
+                transform: Transform::from_translation(translation),
                 ..default()
             })
             .insert(*self)
             .id()
-    }
-
-    /// get world coords for isometric grid
-    pub(crate) fn to_screen_space(self) -> Vec3 {
-        let a = 0.5 * self.size;
-        let b = -(0.5 * self.size);
-        let c = 0.25 * self.size;
-        let d = 0.25 * self.size;
-
-        let Pos { x, y, z } = self.pos;
-        let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
-
-        let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(z));
-
-        let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
-
-        screen_pos.y += f32::from(y) * self.size / 2.0;
-
-        let z_index = -(f32::from(x) * 0.001) + -(f32::from(z) * 0.01) + (f32::from(y) * 0.01);
-        Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 }
