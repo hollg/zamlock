@@ -3,13 +3,26 @@ use std::collections::HashMap;
 use bevy::prelude::*;
 use nalgebra::{Matrix1x2, Matrix2};
 
-use super::{graphics::MapSprites, pos::Pos, tile::Tile};
+use super::{
+    graphics::MapSprites,
+    pos::{Pos, UnorderedPos},
+    tile::Tile,
+};
 
 #[derive(Component, Clone)]
+/// Contains hashmap of all Tiles and provides utilities for
+/// translating between world and screen coordinates etc
 pub struct Map {
     pub(crate) entity: Entity,
-
+    /// tile size must be square; this is both height and width
     pub(crate) tile_size: f32,
+    /// Pos places tiles in 3d world grid space.
+    /// 
+    /// x runs SouthWest - NorthEast
+    /// 
+    /// y runs groud - sky
+    /// 
+    /// z runs SouthEast - NorthWest
     pub(crate) tiles: HashMap<Pos, Entity>,
     /// Positions the map on the screen. This value is important when mapping screen coordinates
     /// to world/grid coordinates
@@ -52,6 +65,7 @@ impl Map {
             });
     }
 
+    /// translate screen space coords into isometric grid pos with y = 0.0
     pub(crate) fn screen_pos_to_world_pos(&self, screen_pos: Vec2) -> Pos {
         let screen_to_world_transform_matrix = self
             .screen_to_world_transform_matrix()
@@ -64,16 +78,16 @@ impl Map {
         Pos::new(world_pos_matrix.x.floor(), 0.0, world_pos_matrix.y.floor())
     }
 
-    /// get world coords for isometric grid
+    /// translate grid pos into screen space coords
     pub(crate) fn to_screen_space(&self, world_pos: Pos) -> Vec3 {
         let world_to_screen_transform_matrix = self.world_to_screen_transform_matrix();
-        let Pos { x, y, z } = world_pos;
+        let UnorderedPos { x, y, z } = world_pos.into();
 
-        let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(z));
+        let pos_as_matrix = Matrix1x2::new(x, z);
         let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
-        screen_pos.y += f32::from(y) * self.tile_size / 2.0;
+        screen_pos.y += y * self.tile_size / 2.0;
 
-        let z_index = -(f32::from(x) * 0.001) + -(f32::from(z) * 0.01) + (f32::from(y) * 0.01);
+        let z_index = -(x * 0.001) + -(z * 0.01) + (y * 0.01);
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 
@@ -88,5 +102,10 @@ impl Map {
 
     fn screen_to_world_transform_matrix(&self) -> Option<Matrix2<f32>> {
         self.world_to_screen_transform_matrix().try_inverse()
+    }
+
+    /// Get distance between centre of tile sprite and centre of top face
+    pub(crate) fn tile_y_offset(&self) -> f32 {
+        self.tile_size / 2.0
     }
 }

@@ -18,3 +18,20 @@ impl Pos {
         }
     }
 }
+
+/// Sometimes it's easier to work with the f32 directly
+pub(crate) struct UnorderedPos {
+    pub(crate) x: f32,
+    pub(crate) y: f32,
+    pub(crate) z: f32,
+}
+
+impl From<Pos> for UnorderedPos {
+    fn from(pos: Pos) -> Self {
+        UnorderedPos {
+            x: f32::from(pos.x),
+            y: f32::from(pos.y),
+            z: f32::from(pos.z),
+        }
+    }
+}
