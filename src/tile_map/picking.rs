@@ -33,7 +33,7 @@ impl TilePickingPlugin {
         let map = map_query.get_single().expect("No map!");
         let mut new_active_tile: ActiveTile = ActiveTile(None);
 
-        if let Some(mut screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
+        if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
             let mut picked: Option<(Pos, Entity)> = None;
 
             // sort tiles highest elevation first
@@ -46,10 +46,10 @@ impl TilePickingPlugin {
                 }
 
                 // translate mouse pos to ground level grid coord and pick current tile
-                // if it matches that grid coord on x and z
+                // if it matches on x and z coords
                 let y_offset = map.tile_y_offset() * f32::from(pos.y);
-                screen_pos.y -= y_offset;
-                let offset_world_pos = map.screen_pos_to_world_pos(screen_pos);
+                let offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - y_offset);
+                let offset_world_pos = map.screen_pos_to_world_pos(offset_screen_pos);
 
                 if pos.x == offset_world_pos.x && pos.z == offset_world_pos.z {
                     picked = Some((**pos, **entity));
