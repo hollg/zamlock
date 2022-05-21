@@ -23,6 +23,7 @@ impl Plugin for TilePickingPlugin {
 }
 
 impl TilePickingPlugin {
+    /// Populates `ActiveTile` resource with the entity for the tile that the mouse is hovering ove (if any).
     fn set_active_tile(
         wnds: Res<Windows>,
         q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -35,21 +36,22 @@ impl TilePickingPlugin {
         if let Some(screen_pos) = mouse_pos_to_screen_pos(wnds, q_camera) {
             let mut picked: Option<(Pos, Entity)> = None;
 
+            // sort tiles highest elevation first
             let mut tiles = map.tiles.iter().collect::<Vec<(&Pos, &Entity)>>();
-            // lowest elevation first
-            tiles.sort_by(|(point_a, _), (point_b, _)| point_a.1.cmp(&point_b.1));
-            // then reverse!
-            for (pos, entity) in tiles.iter().rev() {
+            tiles.sort_by(|(point_a, _), (point_b, _)| point_b.y.cmp(&point_a.y));
+
+            for (pos, entity) in tiles.iter() {
                 if picked.is_some() {
                     break;
                 }
 
-                let y_offset = (map.tile_size / 2.0) * f32::from(pos.1);
-
+                // translate mouse pos to ground level grid coord and pick current tile
+                // if it matches on x and z coords
+                let y_offset = map.tile_y_offset() * f32::from(pos.y);
                 let offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - y_offset);
                 let offset_world_pos = map.screen_pos_to_world_pos(offset_screen_pos);
 
-                if pos.0 == offset_world_pos.0 && pos.2 == offset_world_pos.2 {
+                if pos.x == offset_world_pos.x && pos.z == offset_world_pos.z {
                     picked = Some((**pos, **entity));
                 }
             }
@@ -57,7 +59,7 @@ impl TilePickingPlugin {
             if let Some((picked_pos, picked_entity)) = picked {
                 // can't pick tiles that are underneath others
                 if !tiles.iter().any(|(pos, _)| {
-                    pos.0 == picked_pos.0 && pos.2 == picked_pos.2 && pos.1 > picked_pos.1
+                    pos.x == picked_pos.x && pos.z == picked_pos.z && pos.y > picked_pos.y
                 }) {
                     new_active_tile = ActiveTile(Some(picked_entity));
                 }
@@ -67,6 +69,7 @@ impl TilePickingPlugin {
         *active_tile = new_active_tile;
     }
 
+    /// Adds highlight sprite to `ActiveTile`
     fn hover_tile(
         mut commands: Commands,
         tile_query: Query<&Tile>,

@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::Anchor};
 
-use crate::tile_map::{Map, Pos, Tile};
+use crate::tile_map::{Map, Pos};
 
 #[derive(Default)]
 pub(crate) struct UnitSprites {
@@ -43,20 +43,14 @@ impl UnitPlugin {
         graphics.man_south_west = man_south_west_handle;
     }
 
-    fn spawn_unit(
-        mut commands: Commands,
-        tile_query: Query<(&Tile, Entity)>,
-        graphics: ResMut<UnitSprites>,
-        map_query: Query<&Map>,
-    ) {
+    fn spawn_unit(mut commands: Commands, graphics: ResMut<UnitSprites>, map_query: Query<&Map>) {
         let map = map_query.get_single().expect("Not exactly 1 map");
         let player_starting_pos = Pos::new(9.0, 0.0, 9.0);
-        let (tile, tile_entity) = tile_query
-            .iter()
-            .find(|(t, _e)| player_starting_pos == t.pos)
-            .unwrap();
 
-        let mut screen_coords = tile.get_y_offset() + map.y_offset;
+        let tile_entity = map.tiles.get(&player_starting_pos).expect("No such tile");
+
+        let mut screen_coords =
+            map.world_pos_to_screen_pos(player_starting_pos) + map.tile_y_offset();
         screen_coords.z = 11.0;
 
         commands
@@ -71,8 +65,8 @@ impl UnitPlugin {
                 ..default()
             })
             .insert(Unit {
-                tile: tile_entity,
-                pos: tile.pos,
+                tile: *tile_entity,
+                pos: player_starting_pos,
             });
     }
 }

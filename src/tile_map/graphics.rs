@@ -9,7 +9,6 @@ pub(crate) struct MapSprites {
     pub full_tile: Vec<Handle<Image>>,
     pub half_tile: Handle<Image>,
     pub tile_hover_overlay: Handle<Image>,
-    pub tile_valid_move_overlay: Handle<Image>,
 }
 
 impl MapSprites {
