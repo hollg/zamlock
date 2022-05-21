@@ -37,19 +37,19 @@ impl TilePickingPlugin {
 
             let mut tiles = map.tiles.iter().collect::<Vec<(&Pos, &Entity)>>();
             // lowest elevation first
-            tiles.sort_by(|(point_a, _), (point_b, _)| point_a.1.cmp(&point_b.1));
+            tiles.sort_by(|(point_a, _), (point_b, _)| point_a.y.cmp(&point_b.y));
             // then reverse!
             for (pos, entity) in tiles.iter().rev() {
                 if picked.is_some() {
                     break;
                 }
 
-                let y_offset = (map.tile_size / 2.0) * f32::from(pos.1);
+                let y_offset = (map.tile_size / 2.0) * f32::from(pos.y);
 
                 let offset_screen_pos = Vec2::new(screen_pos.x, screen_pos.y - y_offset);
                 let offset_world_pos = map.screen_pos_to_world_pos(offset_screen_pos);
 
-                if pos.0 == offset_world_pos.0 && pos.2 == offset_world_pos.2 {
+                if pos.x == offset_world_pos.x && pos.z == offset_world_pos.z {
                     picked = Some((**pos, **entity));
                 }
             }
@@ -57,7 +57,7 @@ impl TilePickingPlugin {
             if let Some((picked_pos, picked_entity)) = picked {
                 // can't pick tiles that are underneath others
                 if !tiles.iter().any(|(pos, _)| {
-                    pos.0 == picked_pos.0 && pos.2 == picked_pos.2 && pos.1 > picked_pos.1
+                    pos.x == picked_pos.x && pos.z == picked_pos.z && pos.y > picked_pos.y
                 }) {
                     new_active_tile = ActiveTile(Some(picked_entity));
                 }

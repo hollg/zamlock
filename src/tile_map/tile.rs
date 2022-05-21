@@ -46,7 +46,7 @@ impl Tile {
         let c = 0.25 * self.size;
         let d = 0.25 * self.size;
 
-        let Pos(x, y, z) = self.pos;
+        let Pos { x, y, z } = self.pos;
         let world_to_screen_transform_matrix = Matrix2::new(a, c, b, d);
 
         let pos_as_matrix = Matrix1x2::new(f32::from(x), f32::from(z));
@@ -57,10 +57,5 @@ impl Tile {
 
         let z_index = -(f32::from(x) * 0.001) + -(f32::from(z) * 0.01) + (f32::from(y) * 0.01);
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
-    }
-
-    /// returns y coord offset to from sprite origin to centre of top face
-    pub(crate) fn get_y_offset(&self) -> f32 {
-        self.size / 4.0
     }
 }
