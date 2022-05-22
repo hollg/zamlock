@@ -10,11 +10,19 @@ pub struct Pos {
 }
 
 impl Pos {
-    pub(crate) fn new(x: f32, y: f32, z: f32) -> Pos {
+    pub(crate) fn new<
+        T: Into<OrderedFloat<f32>>,
+        U: Into<OrderedFloat<f32>>,
+        V: Into<OrderedFloat<f32>>,
+    >(
+        x: T,
+        y: U,
+        z: V,
+    ) -> Pos {
         Pos {
-            x: OrderedFloat(x),
-            y: OrderedFloat(y),
-            z: OrderedFloat(z),
+            x: x.into(),
+            y: y.into(),
+            z: z.into(),
         }
     }
 }

@@ -6,7 +6,7 @@ mod units;
 
 use camera::CameraPlugin;
 use tile_map::TileMapPluginGroup;
-use units::UnitPlugin;
+use units::UnitPluginGroup;
 
 const TILE_SIZE: f32 = 32.0;
 
@@ -26,7 +26,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugins(TileMapPluginGroup)
-        .add_plugin(UnitPlugin)
+        .add_plugins(UnitPluginGroup)
         .add_plugin(CameraPlugin)
         .run()
 }

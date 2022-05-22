@@ -137,4 +137,84 @@ impl Map {
         coords.z += 0.005;
         coords
     }
+
+    /// Return `Pos` of all existent `Tile`s reachable in one stop from given `Po`.
+    ///
+    /// N.B. movement in the y axis happens 0.5 at a time
+    pub fn get_frontier(&self, pos: Pos) -> Vec<Pos> {
+        let UnorderedPos { x, y, z } = pos.into();
+
+        let mut frontier: Vec<Pos> = vec![];
+
+        // Current elevation
+        let level_plus_x = Pos::new(x + 1.0, y, z);
+        if self.tiles.get(&level_plus_x).is_some() && !self.is_pos_covered(level_plus_x) {
+            frontier.push(level_plus_x);
+        }
+        let level_minus_x = Pos::new(x - 1.0, y, z);
+        if self.tiles.get(&level_minus_x).is_some() && !self.is_pos_covered(level_minus_x) {
+            frontier.push(level_minus_x);
+        }
+
+        let level_plus_z = Pos::new(x, y, z + 1.0);
+        if self.tiles.get(&level_plus_z).is_some() && !self.is_pos_covered(level_plus_z) {
+            frontier.push(level_plus_z);
+        }
+        let level_minus_z = Pos::new(x, y, z - 1.0);
+        if self.tiles.get(&level_minus_z).is_some() && !self.is_pos_covered(level_minus_z) {
+            frontier.push(level_minus_z);
+        }
+
+        // Higher elevation
+        let higher_plus_x = Pos::new(x + 1.0, y + 0.5, z);
+        if self.tiles.get(&higher_plus_x).is_some() && !self.is_pos_covered(higher_plus_x) {
+            frontier.push(higher_plus_x);
+        }
+        let higher_minus_x = Pos::new(x - 1.0, y + 0.5, z);
+        if self.tiles.get(&higher_minus_x).is_some() && !self.is_pos_covered(higher_minus_x) {
+            frontier.push(higher_minus_x);
+        }
+
+        let higher_plus_z = Pos::new(x, y + 0.5, z + 1.0);
+        if self.tiles.get(&higher_plus_z).is_some() && !self.is_pos_covered(higher_plus_z) {
+            frontier.push(higher_plus_z);
+        }
+        let higher_minus_z = Pos::new(x, y + 0.5, z - 1.0);
+        if self.tiles.get(&higher_minus_z).is_some() && !self.is_pos_covered(higher_minus_z) {
+            frontier.push(higher_minus_z);
+        }
+
+        // Lower elevation
+        let lower_plus_x = Pos::new(x + 1.0, y - 0.5, z);
+        if self.tiles.get(&lower_plus_x).is_some() && !self.is_pos_covered(lower_plus_x) {
+            frontier.push(lower_plus_x);
+        }
+        let lower_minus_x = Pos::new(x - 1.0, y - 0.5, z);
+        if self.tiles.get(&lower_minus_x).is_some() && !self.is_pos_covered(lower_minus_x) {
+            frontier.push(lower_minus_x);
+        }
+
+        let lower_plus_z = Pos::new(x, y - 0.5, z + 1.0);
+        if self.tiles.get(&lower_plus_z).is_some() && !self.is_pos_covered(lower_plus_z) {
+            frontier.push(lower_plus_z);
+        }
+        let lower_minus_z = Pos::new(x, y - 0.5, z - 1.0);
+        if self.tiles.get(&lower_minus_z).is_some() && !self.is_pos_covered(lower_minus_z) {
+            frontier.push(lower_minus_z);
+        }
+
+        frontier
+    }
+
+    /// return `true` if there is a `Tile` directly above provided `Pos` on y axis,
+    /// else return `false
+    fn is_pos_covered(&self, pos: Pos) -> bool {
+        self.tiles
+            .get(&Pos::new(pos.x, pos.y + 0.5, pos.z))
+            .is_some()
+            || self
+                .tiles
+                .get(&Pos::new(pos.x, pos.y + 1.0, pos.z))
+                .is_some()
+    }
 }

@@ -12,6 +12,7 @@ use picking::TilePickingPlugin;
 use tile::TileHeight;
 
 pub use map::Map;
+pub use picking::{ActiveTile, TileClickEvent};
 pub use pos::Pos;
 pub use tile::Tile;
 

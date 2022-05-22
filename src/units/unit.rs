@@ -1,33 +1,104 @@
 use bevy::{prelude::*, sprite::Anchor};
 
-use crate::tile_map::{Map, Pos};
+use crate::tile_map::{Map, Pos, TileClickEvent};
+
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum SelectMode {
+    Move,
+}
+#[derive(Copy, Clone, Default, Debug)]
+pub(crate) enum SelectedUnit {
+    #[default]
+    None,
+    Some {
+        entity: Entity,
+        mode: SelectMode,
+    },
+}
+
+impl SelectedUnit {
+    pub fn is_some(&self) -> bool {
+        match self {
+            SelectedUnit::None => false,
+            SelectedUnit::Some { entity: _, mode: _ } => true,
+        }
+    }
+
+    pub fn is_none(&self) -> bool {
+        !self.is_some()
+    }
+}
 
 #[derive(Default)]
-pub(crate) struct UnitSprites {
+pub(crate) struct KnightSprites {
     pub(crate) knight_north_east: Handle<Image>,
     pub(crate) knight_north_west: Handle<Image>,
     pub(crate) knight_south_east: Handle<Image>,
     pub(crate) knight_south_west: Handle<Image>,
 }
 
+#[derive(Clone, Copy)]
+pub enum Direction {
+    NorthEast,
+    NorthWest,
+    SouthEast,
+    SouthWest,
+}
 #[derive(Component)]
-struct Unit {
+pub(crate) struct Unit {
     pub(crate) pos: Pos,
     pub(crate) tile: Entity,
+    pub(crate) move_speed: f32,
+    pub(crate) move_distance: usize,
+    pub(crate) facing: Direction,
+}
+
+impl Unit {
+    pub(crate) fn get_valid_moves(&self, map: &Map) -> Vec<Pos> {
+        let mut valid_moves: Vec<Pos> = vec![];
+
+        // for each allowed move, get the frontier from each tile reachable by previous moves
+        // return all reachable tiles
+        let mut prev_frontier: Vec<Pos> = vec![self.pos];
+
+        for _depth in 0..self.move_distance {
+            let mut iteration_frontier = vec![];
+
+            for pos in prev_frontier {
+                iteration_frontier.append(&mut map.get_frontier(pos));
+            }
+
+            // clone because append leaves empty vec behind!
+            valid_moves.append(&mut iteration_frontier.clone());
+            prev_frontier = iteration_frontier;
+        }
+
+        let mut filtered_moves = valid_moves
+            .into_iter()
+            // remove current position from valid moves
+            .filter(|pos| *pos != self.pos)
+            .collect::<Vec<Pos>>();
+
+        filtered_moves.dedup();
+
+        filtered_moves
+    }
 }
 
 pub struct UnitPlugin;
 
 impl Plugin for UnitPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(UnitSprites::default())
+        app.insert_resource(KnightSprites::default())
+            .insert_resource(SelectedUnit::default())
             .add_startup_system(Self::load_unit_graphics)
-            .add_startup_system(Self::spawn_unit.after(Self::load_unit_graphics));
+            .add_startup_system(Self::spawn_knight.after(Self::load_unit_graphics))
+            .add_system(Self::handle_click);
     }
 }
 
 impl UnitPlugin {
-    fn load_unit_graphics(asset_server: Res<AssetServer>, mut graphics: ResMut<UnitSprites>) {
+    fn load_unit_graphics(asset_server: Res<AssetServer>, mut graphics: ResMut<KnightSprites>) {
         let knight_north_east_handle =
             asset_server.load::<Image, &str>("units/knight/knight_north_east.png");
         let knight_north_west_handle =
@@ -43,9 +114,36 @@ impl UnitPlugin {
         graphics.knight_south_west = knight_south_west_handle;
     }
 
-    fn spawn_unit(mut commands: Commands, graphics: ResMut<UnitSprites>, map_query: Query<&Map>) {
+    fn handle_click(
+        mut selected_unit: ResMut<SelectedUnit>,
+        unit_query: Query<(&Unit, Entity)>,
+        mut events: EventReader<TileClickEvent>,
+    ) {
+        for TileClickEvent(tile_entity) in events.iter() {
+            match *selected_unit {
+                // If no unit is selected, select the one on the clicked tile (if there is one)
+                SelectedUnit::None => {
+                    if let Some((_unit, unit_entity)) =
+                        unit_query.iter().find(|(u, _e)| u.tile == *tile_entity)
+                    {
+                        *selected_unit = SelectedUnit::Some {
+                            entity: unit_entity,
+                            mode: SelectMode::Move,
+                        }
+                    }
+                }
+                SelectedUnit::Some { entity: _, mode: _ } => return,
+            }
+        }
+    }
+
+    fn spawn_knight(
+        mut commands: Commands,
+        graphics: ResMut<KnightSprites>,
+        map_query: Query<&Map>,
+    ) {
         let map = map_query.get_single().expect("Not exactly 1 map");
-        let starting_pos = Pos::new(6.0, 0.0, 0.0);
+        let starting_pos = Pos::new(5.0, 0.0, 3.0);
 
         let tile_entity = map.tiles.get(&starting_pos).expect("No such tile");
         let screen_coords = map.world_pos_to_unit_screen_pos_absolute(starting_pos);
@@ -64,6 +162,9 @@ impl UnitPlugin {
             .insert(Unit {
                 tile: *tile_entity,
                 pos: starting_pos,
+                facing: Direction::NorthWest,
+                move_speed: 0.8,
+                move_distance: 3,
             });
     }
 }

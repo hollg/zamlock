@@ -6,7 +6,8 @@ use super::{graphics::MapSprites, map::Map, pos::Pos, tile::Tile};
 
 pub(crate) struct TilePickingPlugin;
 
-struct ActiveTile(Option<Entity>);
+pub struct ActiveTile(pub Option<Entity>);
+pub struct TileClickEvent(pub Entity);
 
 #[derive(Component)]
 struct Highlight;
@@ -14,11 +15,13 @@ struct Highlight;
 impl Plugin for TilePickingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ActiveTile(None))
+            .add_event::<TileClickEvent>()
             .add_system_to_stage(CoreStage::PreUpdate, Self::set_active_tile)
             .add_system_to_stage(
                 CoreStage::PreUpdate,
                 Self::hover_tile.after(Self::set_active_tile),
-            );
+            )
+            .add_system(Self::click_tile.after(Self::hover_tile));
     }
 }
 
@@ -107,5 +110,21 @@ impl TilePickingPlugin {
             .id();
 
         commands.entity(tile_entity).add_child(highlight);
+    }
+
+    /// Send TileClickEvent when click occurs
+    /// while there is an `ActiveTile`
+    fn click_tile(
+        active_tile: Res<ActiveTile>,
+        mouse: Res<Input<MouseButton>>,
+        mut events: EventWriter<TileClickEvent>,
+    ) {
+        if !mouse.just_pressed(MouseButton::Left) {
+            return;
+        }
+
+        if let ActiveTile(Some(tile_entity)) = *active_tile {
+            events.send(TileClickEvent(tile_entity))
+        }
     }
 }
