@@ -134,7 +134,7 @@ impl Map {
         let mut coords = self.world_pos_to_screen_pos_absolute(world_pos);
         coords.y += self.tile_top_y_offset();
         // in front of tile highlight sprite, behind taller tiles
-        coords.z += 0.005;
+        coords.z += 0.009999;
         coords
     }
 
