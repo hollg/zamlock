@@ -2,15 +2,18 @@ use bevy::prelude::*;
 use std::collections::VecDeque;
 
 use crate::{
-    tile_map::{Map, Pos, SetPathEvent, Tile},
+    tile_map::{Map, Pos, SetPathEvent},
     units::unit::{SelectedUnit, Unit},
 };
+
+use super::super::Direction;
 
 #[derive(Component)]
 pub(super) struct Moving {
     pub(super) path: VecDeque<Pos>,
 }
 
+pub struct ChangeFacingEvent(pub Entity, pub Direction);
 #[derive(Default)]
 struct ValidMoveGraphics {
     overlay: Handle<Image>,
@@ -25,6 +28,7 @@ pub struct MovementPlugin;
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ValidMoveGraphics::default())
+            .add_event::<ChangeFacingEvent>()
             .add_startup_system(Self::load_overlay_graphic)
             .add_system(Self::highlight_valid_moves.after("click_tile"))
             .add_system(Self::set_unit_path)
@@ -106,11 +110,15 @@ impl MovementPlugin {
         mut commands: Commands,
         mut moving_unit_query: Query<(&mut Unit, &mut Transform, &mut Moving, Entity)>,
         map_query: Query<&Map>,
+        mut event: EventWriter<ChangeFacingEvent>,
     ) {
         let map = map_query.get_single().expect("Not exactly one map");
         for (mut unit, mut transform, mut moving, entity) in moving_unit_query.iter_mut() {
             let next = moving.path[0];
             let next_tile_entity = map.tiles.get(&next).expect("No tile at next pos");
+
+            let facing = get_facing(unit.pos, next);
+            event.send(ChangeFacingEvent(entity, facing));
 
             let next_pos_isometric = map.world_pos_to_unit_screen_pos_absolute(next);
             let move_vector =
@@ -134,4 +142,21 @@ impl MovementPlugin {
             }
         }
     }
+}
+
+fn get_facing(current: Pos, next: Pos) -> Direction {
+    if next.x > current.x && next.z == current.z {
+        return Direction::NorthEast;
+    }
+    if next.x < current.x && next.z == current.z {
+        return Direction::SouthWest;
+    }
+    if next.z > current.z && next.x == current.x {
+        return Direction::NorthWest;
+    }
+    if next.z < current.z && next.x == current.x {
+        return Direction::SouthEast;
+    }
+
+    Direction::SouthWest
 }

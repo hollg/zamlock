@@ -3,6 +3,8 @@ use pathfinding::{num_traits::ToPrimitive, prelude::astar};
 
 use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent, Tile};
 
+use super::movement::ChangeFacingEvent;
+
 #[derive(Copy, Clone, Debug)]
 pub enum SelectMode {
     Move,
@@ -52,6 +54,14 @@ pub struct Unit {
     pub(crate) move_speed: f32,
     pub(crate) move_distance: usize,
     pub(crate) facing: Direction,
+    pub(crate) sprites: Sprites,
+}
+
+pub(crate) struct Sprites {
+    north_east: Handle<Image>,
+    north_west: Handle<Image>,
+    south_east: Handle<Image>,
+    south_west: Handle<Image>,
 }
 
 impl Unit {
@@ -109,7 +119,8 @@ impl Plugin for UnitPlugin {
             .add_startup_system(Self::load_unit_graphics)
             .add_startup_system(Self::spawn_knight.after(Self::load_unit_graphics))
             .add_system(Self::select_unit)
-            .add_system(Self::deselect_unit);
+            .add_system(Self::deselect_unit)
+            .add_system(Self::change_facing);
     }
 }
 
@@ -151,11 +162,23 @@ impl UnitPlugin {
         }
     }
 
-    fn spawn_knight(
-        mut commands: Commands,
-        graphics: ResMut<KnightSprites>,
-        map_query: Query<&Map>,
+    fn change_facing(
+        mut events: EventReader<ChangeFacingEvent>,
+        mut unit_query: Query<(&Unit, &mut Handle<Image>)>,
     ) {
+        for ChangeFacingEvent(entity, direction) in events.iter() {
+            let (unit, mut sprite) = unit_query.get_mut(*entity).expect("No unit for entity");
+
+            *sprite = match *direction {
+                Direction::NorthEast => unit.sprites.north_east.clone(),
+                Direction::NorthWest => unit.sprites.north_west.clone(),
+                Direction::SouthEast => unit.sprites.south_east.clone(),
+                Direction::SouthWest => unit.sprites.south_west.clone(),
+            }
+        }
+    }
+
+    fn spawn_knight(mut commands: Commands, graphics: Res<KnightSprites>, map_query: Query<&Map>) {
         let map = map_query.get_single().expect("Not exactly 1 map");
         let starting_pos = Pos::new(5.0, 0.0, 3.0);
 
@@ -179,6 +202,12 @@ impl UnitPlugin {
                 facing: Direction::NorthWest,
                 move_speed: 0.8,
                 move_distance: 3,
+                sprites: Sprites {
+                    north_east: graphics.knight_north_east.clone(),
+                    north_west: graphics.knight_north_west.clone(),
+                    south_east: graphics.knight_south_east.clone(),
+                    south_west: graphics.knight_south_west.clone(),
+                },
             });
     }
 }
