@@ -1,7 +1,7 @@
 use bevy::{prelude::*, sprite::Anchor};
-use pathfinding::{num_traits::ToPrimitive, prelude::astar};
+use pathfinding::prelude::astar;
 
-use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent, Tile};
+use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent};
 
 use super::movement::ChangeFacingEvent;
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     camera::{mouse_pos_to_screen_pos, MainCamera},
-    units::{SelectMode, SelectedUnit, Unit, ValidMove},
+    units::{SelectedUnit, Unit, ValidMove},
 };
 
 use super::{graphics::MapSprites, map::Map, pos::Pos, tile::Tile};

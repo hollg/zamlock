@@ -1,6 +1,6 @@
 use ordered_float::OrderedFloat;
 
-use super::{Map, Tile};
+use super::{Map};
 
 /// Pos uses OrderedFloats so that it can be a key in a hashmap. Implementing Ord will
 /// also be important for pathfinding later.
