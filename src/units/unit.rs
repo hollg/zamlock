@@ -117,7 +117,7 @@ impl Plugin for UnitPlugin {
         app.insert_resource(KnightSprites::default())
             .insert_resource(SelectedUnit::default())
             .add_startup_system(Self::load_unit_graphics)
-            .add_startup_system(Self::spawn_knight.after(Self::load_unit_graphics))
+            .add_startup_system(Self::spawn_knights.after(Self::load_unit_graphics))
             .add_system(Self::select_unit)
             .add_system(Self::deselect_unit)
             .add_system(Self::change_facing);
@@ -178,17 +178,20 @@ impl UnitPlugin {
         }
     }
 
-    fn spawn_knight(mut commands: Commands, graphics: Res<KnightSprites>, map_query: Query<&Map>) {
+    fn spawn_knights(mut commands: Commands, graphics: Res<KnightSprites>, map_query: Query<&Map>) {
         let map = map_query.get_single().expect("Not exactly 1 map");
-        let starting_pos = Pos::new(5.0, 0.0, 3.0);
+        let starting_pos1 = Pos::new(4.0, 0.0, 4.0);
+        let starting_pos2 = Pos::new(6.0, 0.0, 4.0);
 
-        let tile_entity = map.tiles.get(&starting_pos).expect("No such tile");
-        let screen_coords = map.world_pos_to_unit_screen_pos_absolute(starting_pos);
+        let tile_entity1 = map.tiles.get(&starting_pos1).expect("No such tile");
+        let tile_entity2 = map.tiles.get(&starting_pos2).expect("No such tile");
+        let screen_coords1 = map.world_pos_to_unit_screen_pos_absolute(starting_pos1);
+        let screen_coords2 = map.world_pos_to_unit_screen_pos_absolute(starting_pos2);
 
         commands
             .spawn_bundle(SpriteBundle {
-                transform: Transform::from_translation(screen_coords),
-                texture: graphics.knight_north_west.clone(),
+                transform: Transform::from_translation(screen_coords1),
+                texture: graphics.knight_south_east.clone(),
                 sprite: Sprite {
                     // roughly the sprite's feet
                     anchor: Anchor::Custom(Vec2::new(0.0, -0.4)),
@@ -197,8 +200,33 @@ impl UnitPlugin {
                 ..default()
             })
             .insert(Unit {
-                tile: *tile_entity,
-                pos: starting_pos,
+                tile: *tile_entity1,
+                pos: starting_pos1,
+                facing: Direction::NorthWest,
+                move_speed: 0.8,
+                move_distance: 3,
+                sprites: Sprites {
+                    north_east: graphics.knight_north_east.clone(),
+                    north_west: graphics.knight_north_west.clone(),
+                    south_east: graphics.knight_south_east.clone(),
+                    south_west: graphics.knight_south_west.clone(),
+                },
+            });
+
+        commands
+            .spawn_bundle(SpriteBundle {
+                transform: Transform::from_translation(screen_coords2),
+                texture: graphics.knight_south_east.clone(),
+                sprite: Sprite {
+                    // roughly the sprite's feet
+                    anchor: Anchor::Custom(Vec2::new(0.0, -0.4)),
+                    ..default()
+                },
+                ..default()
+            })
+            .insert(Unit {
+                tile: *tile_entity2,
+                pos: starting_pos2,
                 facing: Direction::NorthWest,
                 move_speed: 0.8,
                 move_distance: 3,
