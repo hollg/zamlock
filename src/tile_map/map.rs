@@ -96,7 +96,7 @@ impl Map {
         let mut screen_pos = pos_as_matrix * world_to_screen_transform_matrix;
         screen_pos.y += y * self.tile_size / 2.0;
 
-        let z_index = -(x * 0.001) + -(z * 0.01) + (y * 0.01);
+        let z_index = -(x * 0.001) + -(z * 0.01) + (y.ceil() * 0.01);
         Vec3::new(screen_pos.x, screen_pos.y, z_index)
     }
 
