@@ -108,6 +108,39 @@ impl Unit {
 
         path
     }
+
+    fn spawn_knight(
+        commands: &mut Commands,
+        graphics: &Res<KnightSprites>,
+        screen_coords: Vec3,
+        tile_entity: Entity,
+        starting_pos: Pos,
+    ) {
+        commands
+            .spawn_bundle(SpriteBundle {
+                transform: Transform::from_translation(screen_coords),
+                texture: graphics.knight_south_east.clone(),
+                sprite: Sprite {
+                    // roughly the sprite's feet
+                    anchor: Anchor::Custom(Vec2::new(0.0, -0.4)),
+                    ..default()
+                },
+                ..default()
+            })
+            .insert(Unit {
+                tile: tile_entity,
+                pos: starting_pos,
+                facing: Direction::NorthWest,
+                move_speed: 0.8,
+                move_distance: 3,
+                sprites: Sprites {
+                    north_east: graphics.knight_north_east.clone(),
+                    north_west: graphics.knight_north_west.clone(),
+                    south_east: graphics.knight_south_east.clone(),
+                    south_west: graphics.knight_south_west.clone(),
+                },
+            });
+    }
 }
 
 pub struct UnitPlugin;
@@ -188,54 +221,20 @@ impl UnitPlugin {
         let screen_coords1 = map.world_pos_to_unit_screen_pos_absolute(starting_pos1);
         let screen_coords2 = map.world_pos_to_unit_screen_pos_absolute(starting_pos2);
 
-        commands
-            .spawn_bundle(SpriteBundle {
-                transform: Transform::from_translation(screen_coords1),
-                texture: graphics.knight_south_east.clone(),
-                sprite: Sprite {
-                    // roughly the sprite's feet
-                    anchor: Anchor::Custom(Vec2::new(0.0, -0.4)),
-                    ..default()
-                },
-                ..default()
-            })
-            .insert(Unit {
-                tile: *tile_entity1,
-                pos: starting_pos1,
-                facing: Direction::NorthWest,
-                move_speed: 0.8,
-                move_distance: 3,
-                sprites: Sprites {
-                    north_east: graphics.knight_north_east.clone(),
-                    north_west: graphics.knight_north_west.clone(),
-                    south_east: graphics.knight_south_east.clone(),
-                    south_west: graphics.knight_south_west.clone(),
-                },
-            });
+        Unit::spawn_knight(
+            &mut commands,
+            &graphics,
+            screen_coords1,
+            *tile_entity1,
+            starting_pos1,
+        );
 
-        commands
-            .spawn_bundle(SpriteBundle {
-                transform: Transform::from_translation(screen_coords2),
-                texture: graphics.knight_south_east.clone(),
-                sprite: Sprite {
-                    // roughly the sprite's feet
-                    anchor: Anchor::Custom(Vec2::new(0.0, -0.4)),
-                    ..default()
-                },
-                ..default()
-            })
-            .insert(Unit {
-                tile: *tile_entity2,
-                pos: starting_pos2,
-                facing: Direction::NorthWest,
-                move_speed: 0.8,
-                move_distance: 3,
-                sprites: Sprites {
-                    north_east: graphics.knight_north_east.clone(),
-                    north_west: graphics.knight_north_west.clone(),
-                    south_east: graphics.knight_south_east.clone(),
-                    south_west: graphics.knight_south_west.clone(),
-                },
-            });
+        Unit::spawn_knight(
+            &mut commands,
+            &graphics,
+            screen_coords2,
+            *tile_entity2,
+            starting_pos2,
+        );
     }
 }
