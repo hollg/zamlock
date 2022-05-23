@@ -138,7 +138,7 @@ impl Map {
         coords
     }
 
-    /// Return `Pos` of all existent `Tile`s reachable in one stop from given `Po`.
+    /// Return `Pos` of all existent `Tile`s reachable in one stop from given `Pos`.
     ///
     /// N.B. movement in the y axis happens 0.5 at a time
     pub fn get_frontier(&self, pos: Pos) -> Vec<Pos> {
