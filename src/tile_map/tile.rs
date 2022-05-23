@@ -1,4 +1,4 @@
-use super::graphics::MapSprites;
+use super::{graphics::MapSprites, Pos};
 use bevy::prelude::*;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -12,6 +12,7 @@ pub struct Tile {
     pub(crate) height: TileHeight,
     /// height/width in pixels (tile must be square!)
     pub(crate) size: f32,
+    pub(crate) pos: Pos,
 }
 
 impl Tile {

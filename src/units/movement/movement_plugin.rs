@@ -19,14 +19,14 @@ struct ValidMoveGraphics {
 struct ValidMoveOverlay;
 
 #[derive(Component)]
-struct ValidMove;
+pub struct ValidMove;
 pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ValidMoveGraphics::default())
             .add_startup_system(Self::load_overlay_graphic)
-            .add_system(Self::highlight_valid_moves);
+            .add_system(Self::highlight_valid_moves.after("click_tile"));
     }
 }
 
@@ -42,9 +42,19 @@ impl MovementPlugin {
         selected_unit: Res<SelectedUnit>,
         unit_query: Query<&Unit>,
         map_query: Query<&Map>,
+        overlay_query: Query<Entity, With<ValidMoveOverlay>>,
+        valid_move_query: Query<Entity, With<ValidMove>>,
         graphics: Res<ValidMoveGraphics>,
     ) {
         if selected_unit.is_none() {
+            for entity in overlay_query.iter() {
+                commands.entity(entity).despawn();
+            }
+
+            for entity in valid_move_query.iter() {
+                commands.entity(entity).remove::<ValidMove>();
+            }
+
             return;
         }
         let map = map_query.get_single().expect("Not exactly one map!");

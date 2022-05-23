@@ -1,3 +1,3 @@
 mod movement_plugin;
 
-pub use movement_plugin::MovementPlugin;
+pub use movement_plugin::{MovementPlugin, ValidMove};

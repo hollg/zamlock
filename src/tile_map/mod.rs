@@ -12,7 +12,7 @@ use picking::TilePickingPlugin;
 use tile::TileHeight;
 
 pub use map::Map;
-pub use picking::{ActiveTile, TileClickEvent};
+pub use picking::{ActiveTile, DeselectUnitEvent, SelectUnitEvent};
 pub use pos::Pos;
 pub use tile::Tile;
 
@@ -44,6 +44,7 @@ impl TileMapPlugin {
                 let tile = Tile {
                     height: TileHeight::Full,
                     size: map.tile_size,
+                    pos
                 };
 
                 map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -55,6 +56,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Full,
             size: map.tile_size,
+            pos
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -63,6 +65,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -71,6 +74,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -79,6 +83,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Full,
             size: map.tile_size,
+            pos
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -87,6 +92,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);

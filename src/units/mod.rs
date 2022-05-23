@@ -3,8 +3,9 @@ mod unit;
 
 use bevy::prelude::PluginGroup;
 use movement::MovementPlugin;
-use unit::Unit;
 use unit::UnitPlugin;
+pub use unit::{SelectedUnit, Unit, SelectMode};
+pub use movement::ValidMove;
 
 pub struct UnitPluginGroup;
 

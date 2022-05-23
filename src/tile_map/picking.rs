@@ -1,13 +1,18 @@
 use bevy::prelude::*;
 
-use crate::camera::{mouse_pos_to_screen_pos, MainCamera};
+use crate::{
+    camera::{mouse_pos_to_screen_pos, MainCamera},
+    units::{SelectMode, SelectedUnit, Unit, ValidMove},
+};
 
 use super::{graphics::MapSprites, map::Map, pos::Pos, tile::Tile};
 
 pub(crate) struct TilePickingPlugin;
 
 pub struct ActiveTile(pub Option<Entity>);
-pub struct TileClickEvent(pub Entity);
+pub struct SelectUnitEvent(pub Entity);
+pub struct DeselectUnitEvent(pub Entity);
+pub struct SetPathEvent(pub Entity, pub Pos);
 
 #[derive(Component)]
 struct Highlight;
@@ -15,13 +20,15 @@ struct Highlight;
 impl Plugin for TilePickingPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ActiveTile(None))
-            .add_event::<TileClickEvent>()
+            .add_event::<SelectUnitEvent>()
+            .add_event::<DeselectUnitEvent>()
+            .add_event::<SetPathEvent>()
             .add_system_to_stage(CoreStage::PreUpdate, Self::set_active_tile)
             .add_system_to_stage(
                 CoreStage::PreUpdate,
                 Self::hover_tile.after(Self::set_active_tile),
             )
-            .add_system(Self::click_tile.after(Self::hover_tile));
+            .add_system(Self::click_tile.label("click_tile").after(Self::hover_tile));
     }
 }
 
@@ -114,17 +121,48 @@ impl TilePickingPlugin {
 
     /// Send TileClickEvent when click occurs
     /// while there is an `ActiveTile`
+    // TODO: handle all clicks from here by sending different events depending on whether
+    // there is a SelectedUnit, ActiveTile etc
     fn click_tile(
         active_tile: Res<ActiveTile>,
+        selected_unit: Res<SelectedUnit>,
         mouse: Res<Input<MouseButton>>,
-        mut events: EventWriter<TileClickEvent>,
+        mut select_events: EventWriter<SelectUnitEvent>,
+        mut deselect_events: EventWriter<DeselectUnitEvent>,
+        mut set_path_events: EventWriter<SetPathEvent>,
+        unit_query: Query<(Entity, &Unit)>,
+        valid_move_query: Query<(&Tile, Option<&ValidMove>)>,
     ) {
         if !mouse.just_pressed(MouseButton::Left) {
             return;
         }
 
+        // clicked on a tile
         if let ActiveTile(Some(tile_entity)) = *active_tile {
-            events.send(TileClickEvent(tile_entity))
+            match *selected_unit {
+                SelectedUnit::None => {
+                    if let Some((unit_entity, _unit)) =
+                        unit_query.iter().find(|(_e, u)| u.tile == tile_entity)
+                    {
+                        select_events.send(SelectUnitEvent(unit_entity))
+                    }
+                }
+                SelectedUnit::Some {
+                    entity: selected_unit,
+                    mode: select_mode,
+                } => {
+                    let (tile, valid_move) = valid_move_query
+                        .get(tile_entity)
+                        .expect("No tile for selected entity");
+                    if let SelectMode::Move = select_mode {
+                        if valid_move.is_some() {
+                            set_path_events.send(SetPathEvent(selected_unit, tile.pos))
+                        }
+                    }
+
+                    deselect_events.send(DeselectUnitEvent(selected_unit));
+                }
+            }
         }
     }
 }

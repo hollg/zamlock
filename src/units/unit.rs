@@ -1,13 +1,13 @@
 use bevy::{prelude::*, sprite::Anchor};
 
-use crate::tile_map::{Map, Pos, TileClickEvent};
+use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent};
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) enum SelectMode {
+pub enum SelectMode {
     Move,
 }
 #[derive(Copy, Clone, Default, Debug)]
-pub(crate) enum SelectedUnit {
+pub enum SelectedUnit {
     #[default]
     None,
     Some {
@@ -45,9 +45,9 @@ pub enum Direction {
     SouthWest,
 }
 #[derive(Component)]
-pub(crate) struct Unit {
+pub struct Unit {
     pub(crate) pos: Pos,
-    pub(crate) tile: Entity,
+    pub tile: Entity,
     pub(crate) move_speed: f32,
     pub(crate) move_distance: usize,
     pub(crate) facing: Direction,
@@ -93,7 +93,8 @@ impl Plugin for UnitPlugin {
             .insert_resource(SelectedUnit::default())
             .add_startup_system(Self::load_unit_graphics)
             .add_startup_system(Self::spawn_knight.after(Self::load_unit_graphics))
-            .add_system(Self::handle_click);
+            .add_system(Self::select_unit)
+            .add_system(Self::deselect_unit);
     }
 }
 
@@ -114,26 +115,24 @@ impl UnitPlugin {
         graphics.knight_south_west = knight_south_west_handle;
     }
 
-    fn handle_click(
+    fn select_unit(
         mut selected_unit: ResMut<SelectedUnit>,
-        unit_query: Query<(&Unit, Entity)>,
-        mut events: EventReader<TileClickEvent>,
+        mut events: EventReader<SelectUnitEvent>,
     ) {
-        for TileClickEvent(tile_entity) in events.iter() {
-            match *selected_unit {
-                // If no unit is selected, select the one on the clicked tile (if there is one)
-                SelectedUnit::None => {
-                    if let Some((_unit, unit_entity)) =
-                        unit_query.iter().find(|(u, _e)| u.tile == *tile_entity)
-                    {
-                        *selected_unit = SelectedUnit::Some {
-                            entity: unit_entity,
-                            mode: SelectMode::Move,
-                        }
-                    }
-                }
-                SelectedUnit::Some { entity: _, mode: _ } => return,
+        for SelectUnitEvent(unit_entity) in events.iter() {
+            *selected_unit = SelectedUnit::Some {
+                entity: *unit_entity,
+                mode: SelectMode::Move,
             }
+        }
+    }
+
+    fn deselect_unit(
+        mut selected_unit: ResMut<SelectedUnit>,
+        mut events: EventReader<DeselectUnitEvent>,
+    ) {
+        for DeselectUnitEvent(_unit_entity) in events.iter() {
+            *selected_unit = SelectedUnit::None;
         }
     }
 
