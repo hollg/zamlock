@@ -2,13 +2,13 @@ use bevy::prelude::*;
 use std::collections::VecDeque;
 
 use crate::{
-    tile_map::Map,
+    tile_map::{Map, Pos, SetPathEvent, Tile},
     units::unit::{SelectedUnit, Unit},
 };
 
 #[derive(Component)]
 pub(super) struct Moving {
-    pub(super) path: VecDeque<Vec3>,
+    pub(super) path: VecDeque<Pos>,
 }
 
 #[derive(Default)]
@@ -26,7 +26,9 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ValidMoveGraphics::default())
             .add_startup_system(Self::load_overlay_graphic)
-            .add_system(Self::highlight_valid_moves.after("click_tile"));
+            .add_system(Self::highlight_valid_moves.after("click_tile"))
+            .add_system(Self::set_unit_path)
+            .add_system(Self::move_units);
     }
 }
 
@@ -79,6 +81,56 @@ impl MovementPlugin {
                     .entity(*tile_entity)
                     .insert(ValidMove)
                     .add_child(overlay);
+            }
+        }
+    }
+
+    fn set_unit_path(
+        mut commands: Commands,
+        mut events: EventReader<SetPathEvent>,
+        mut unit_query: Query<(&mut Unit, Entity)>,
+        map_query: Query<&Map>,
+    ) {
+        let map = map_query.get_single().expect("Not exactly one map");
+
+        for SetPathEvent(unit_entity, target_pos) in events.iter() {
+            let (unit, entity) = unit_query.get_mut(*unit_entity).unwrap();
+
+            commands.entity(entity).insert(Moving {
+                path: VecDeque::from(unit.get_path(*target_pos, map)),
+            });
+        }
+    }
+
+    fn move_units(
+        mut commands: Commands,
+        mut moving_unit_query: Query<(&mut Unit, &mut Transform, &mut Moving, Entity)>,
+        map_query: Query<&Map>,
+    ) {
+        let map = map_query.get_single().expect("Not exactly one map");
+        for (mut unit, mut transform, mut moving, entity) in moving_unit_query.iter_mut() {
+            let next = moving.path[0];
+            let next_tile_entity = map.tiles.get(&next).expect("No tile at next pos");
+
+            let next_pos_isometric = map.world_pos_to_unit_screen_pos_absolute(next);
+            let move_vector =
+                (next_pos_isometric - transform.translation).normalize() * unit.move_speed;
+            let next_translation = transform.translation + move_vector;
+
+            *transform.translation = *next_translation;
+
+            // when unit reaches next tile,
+            if next_translation.distance(next_pos_isometric) < 0.5 {
+                // pop it from path
+                moving.path.pop_front();
+                // update current tile for facing calculation on next frame
+                unit.tile = *next_tile_entity;
+                unit.pos = next;
+            }
+
+            // when unit reaches last tile, stop moving
+            if moving.path.is_empty() {
+                commands.entity(entity).remove::<Moving>();
             }
         }
     }

@@ -1,6 +1,7 @@
 use bevy::{prelude::*, sprite::Anchor};
+use pathfinding::{num_traits::ToPrimitive, prelude::astar};
 
-use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent};
+use crate::tile_map::{DeselectUnitEvent, Map, Pos, SelectUnitEvent, Tile};
 
 #[derive(Copy, Clone, Debug)]
 pub enum SelectMode {
@@ -82,6 +83,20 @@ impl Unit {
         filtered_moves.dedup();
 
         filtered_moves
+    }
+
+    pub(crate) fn get_path(&self, target_pos: Pos, map: &Map) -> Vec<Pos> {
+        let (mut path, _) = astar(
+            &self.pos,
+            |p| p.successors(map),
+            |p| (p.distance(&target_pos) / 3.0) as u32,
+            |p| p == &target_pos,
+        )
+        .expect("No path found");
+
+        path.retain(|c| *c != self.pos);
+
+        path
     }
 }
 

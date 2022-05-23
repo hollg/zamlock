@@ -148,19 +148,19 @@ impl TilePickingPlugin {
                     }
                 }
                 SelectedUnit::Some {
-                    entity: selected_unit,
-                    mode: select_mode,
+                    entity: unit_entity,
+                    mode: _,
                 } => {
                     let (tile, valid_move) = valid_move_query
                         .get(tile_entity)
                         .expect("No tile for selected entity");
-                    if let SelectMode::Move = select_mode {
-                        if valid_move.is_some() {
-                            set_path_events.send(SetPathEvent(selected_unit, tile.pos))
-                        }
+
+                    // Will need to check here for other interaction types in the future
+                    if valid_move.is_some() {
+                        set_path_events.send(SetPathEvent(unit_entity, tile.pos))
                     }
 
-                    deselect_events.send(DeselectUnitEvent(selected_unit));
+                    deselect_events.send(DeselectUnitEvent(unit_entity));
                 }
             }
         }

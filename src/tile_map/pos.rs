@@ -1,5 +1,7 @@
 use ordered_float::OrderedFloat;
 
+use super::{Map, Tile};
+
 /// Pos uses OrderedFloats so that it can be a key in a hashmap. Implementing Ord will
 /// also be important for pathfinding later.
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -24,6 +26,17 @@ impl Pos {
             y: y.into(),
             z: z.into(),
         }
+    }
+
+    pub(crate) fn distance(&self, other: &Pos) -> f32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
+    }
+
+    pub(crate) fn successors(&self, map: &Map) -> Vec<(Pos, u32)> {
+        map.get_frontier(*self)
+            .iter()
+            .map(|pos| (*pos, 1))
+            .collect()
     }
 }
 
