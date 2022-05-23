@@ -1,21 +1,42 @@
 use ordered_float::OrderedFloat;
 
+use super::{Map, Tile};
+
 /// Pos uses OrderedFloats so that it can be a key in a hashmap. Implementing Ord will
 /// also be important for pathfinding later.
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub(crate) struct Pos {
+pub struct Pos {
     pub(crate) x: OrderedFloat<f32>,
     pub(crate) y: OrderedFloat<f32>,
     pub(crate) z: OrderedFloat<f32>,
 }
 
 impl Pos {
-    pub(crate) fn new(x: f32, y: f32, z: f32) -> Pos {
+    pub(crate) fn new<
+        T: Into<OrderedFloat<f32>>,
+        U: Into<OrderedFloat<f32>>,
+        V: Into<OrderedFloat<f32>>,
+    >(
+        x: T,
+        y: U,
+        z: V,
+    ) -> Pos {
         Pos {
-            x: OrderedFloat(x),
-            y: OrderedFloat(y),
-            z: OrderedFloat(z),
+            x: x.into(),
+            y: y.into(),
+            z: z.into(),
         }
+    }
+
+    pub(crate) fn distance(&self, other: &Pos) -> f32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
+    }
+
+    pub(crate) fn successors(&self, map: &Map) -> Vec<(Pos, u32)> {
+        map.get_frontier(*self)
+            .iter()
+            .map(|pos| (*pos, 1))
+            .collect()
     }
 }
 

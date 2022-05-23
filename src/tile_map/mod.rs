@@ -7,12 +7,14 @@ mod picking;
 mod pos;
 mod tile;
 
-use map::Map;
+use graphics::MapSprites;
 use picking::TilePickingPlugin;
-use pos::Pos;
-use tile::{Tile, TileHeight};
+use tile::TileHeight;
 
-use self::graphics::MapSprites;
+pub use map::Map;
+pub use picking::{ActiveTile, DeselectUnitEvent, SelectUnitEvent, SetPathEvent};
+pub use pos::Pos;
+pub use tile::Tile;
 
 struct TileMapPlugin;
 
@@ -42,6 +44,7 @@ impl TileMapPlugin {
                 let tile = Tile {
                     height: TileHeight::Full,
                     size: map.tile_size,
+                    pos,
                 };
 
                 map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -53,6 +56,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Full,
             size: map.tile_size,
+            pos,
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -61,6 +65,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos,
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -69,6 +74,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos,
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -77,6 +83,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Full,
             size: map.tile_size,
+            pos,
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
@@ -85,6 +92,7 @@ impl TileMapPlugin {
         let tile = Tile {
             height: TileHeight::Half,
             size: map.tile_size,
+            pos,
         };
 
         map.insert_tile(&mut commands, pos, tile, &graphics);
