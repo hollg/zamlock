@@ -38,13 +38,13 @@ impl Plugin for MapGraphicsPlugin {
 
 impl MapGraphicsPlugin {
     fn load_graphics(asset_server: Res<AssetServer>, mut graphics: ResMut<MapSprites>) {
-        let tile1_handle = asset_server.load::<Image, &str>("tiles/full/tile1.png");
-        let tile2_handle = asset_server.load::<Image, &str>("tiles/full/tile2.png");
-        let tile3_handle = asset_server.load::<Image, &str>("tiles/full/tile3.png");
-        let tile4_handle = asset_server.load::<Image, &str>("tiles/full/tile4.png");
-        let tile5_handle = asset_server.load::<Image, &str>("tiles/full/tile5.png");
-        let half_tile_handle = asset_server.load::<Image, &str>("tiles/half-tile.png");
-        let tile_hover_handle = asset_server.load::<Image, &str>("tile_hover.png");
+        let tile1_handle = asset_server.load::<Image, &str>("tiles/grass/full/tile1.png");
+        let tile2_handle = asset_server.load::<Image, &str>("tiles/grass/full/tile2.png");
+        let tile3_handle = asset_server.load::<Image, &str>("tiles/grass/full/tile3.png");
+        let tile4_handle = asset_server.load::<Image, &str>("tiles/grass/full/tile4.png");
+        let tile5_handle = asset_server.load::<Image, &str>("tiles/grass/full/tile5.png");
+        let half_tile_handle = asset_server.load::<Image, &str>("tiles/grass/half-tile.png");
+        let tile_hover_handle = asset_server.load::<Image, &str>("tiles/tile_hover.png");
 
         graphics.full_tile = vec![
             tile1_handle,
