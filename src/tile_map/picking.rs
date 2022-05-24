@@ -28,7 +28,7 @@ impl Plugin for TilePickingPlugin {
                 CoreStage::PreUpdate,
                 Self::hover_tile.after(Self::set_active_tile),
             )
-            .add_system(Self::click_tile.label("click_tile").after(Self::hover_tile));
+            .add_system(Self::click_tile.label("click_tile"));
     }
 }
 
